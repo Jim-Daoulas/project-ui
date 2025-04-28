@@ -6,7 +6,7 @@ function Register() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [confirmPassword, setconfirmPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
 
     const register = () => {
         if (password !== confirmPassword){
@@ -56,7 +56,7 @@ function Register() {
                     className="grow" 
                     placeholder="Confirm Password"
                     value={confirmPassword}
-                    onChange={(ev) => {setconfirmPassword(ev.target.value)}}
+                    onChange={(ev) => {setConfirmPassword(ev.target.value)}}
                     />
                 </label>
                 <button className="btn btn-primary" onClick={register}>Register</button>
