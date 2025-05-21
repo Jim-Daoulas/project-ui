@@ -1,44 +1,25 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../api/axiosInstance";
 
 function Login() {
-    const {user, token, login} = useAuth();
+    const { login } = useAuth();
     const navigate = useNavigate();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const onLogin = () => {
-        console.log("Login button clicked", email, password);
-        
-        // Use the URL relative to the baseURL in axiosInstance
-        axiosInstance.post("/users/auth/login", {
-          email: email,
-          password: password
-        })
-        .then(response => {
-            console.log("Login response:", response.data);
-          if (response.data && response.data.data) {
-            const data = response.data.data;
-            console.log("Token:", data.token);
-            console.log("User:", data.user);
-            console.log("Login successful:", data);
-            localStorage.setItem("token", data.token);
+    const onLogin = async () => {
+        try {
+            // Χρησιμοποιούμε τη μέθοδο login από το AuthContext
+            await login({ email, password });
             navigate("/");
-          } else {
-            console.error("Unexpected response format:", response.data);
-          }
-        })
-        .catch(error => {
-          console.error("Login failed:", error.response || error);
-        });
-      };
+        } catch (error) {
+            console.error("Login failed:", error);
+        }
+    };
 
     return (
-
-
         <div className="flex justify-center vh-100 items-center">
             <form onSubmit={(ev) => {
                 ev.preventDefault();
@@ -66,7 +47,6 @@ function Login() {
             </form>
         </div>
     );
-
 }
 
 export default Login;

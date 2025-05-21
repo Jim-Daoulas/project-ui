@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance =  axios.create({
-    baseURL:"http://localhost/mki-project-api/public"
+    baseURL:"http://mki-project-api.test"
 });
 
 axiosInstance.interceptors.request.use((config) => {

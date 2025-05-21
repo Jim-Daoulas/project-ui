@@ -11,11 +11,13 @@ const AuthContext = createContext<{
     user: User | undefined,
     token: string | null,
     login: (credentials: {email: string; password: string}) => Promise<any>,
+    register: (userData: {name: string; email: string; password: string}) => Promise<any>,
     logout: () => Promise<void>
 }>({
     user: undefined,
     token: null,
     login: () => Promise.resolve(),
+    register: () => Promise.resolve(),
     logout: () => Promise.resolve(),
 });
 
@@ -67,6 +69,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 return data;
             });
     };
+
+    const register = ({ name, email, password }: { name: string; email: string; password: string }) => {
+      return axiosInstance.post("/users/auth/register", { name, email, password })
+          .then(response => {
+              console.log("Register response:", response.data);
+              const data = response.data.data;
+              setUser(data.user);
+              setToken(data.token);
+              localStorage.setItem("token", data.token);
+              return data;
+          });
+  };
+  
     const logout = (): Promise<void> => {
         return axiosInstance.post("/users/auth/logout")
             .then(() => {
@@ -80,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout }}>
+        <AuthContext.Provider value={{ user, token, login, register, logout }}>
             {children}
         </AuthContext.Provider>
     );
