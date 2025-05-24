@@ -1,3 +1,5 @@
+import { BaseResponse } from "./helpers.ts";
+
 export type User = {
 
     id:number;
@@ -7,11 +9,27 @@ export type User = {
     uptade_at:string;
 }
 
-export type LoginResponse = {
-    data: {
-        token:string;
-        user:User;
-    };
-    message: string;
-    success: boolean;
-}
+export type LoginCredentials = {
+    email: string;
+    password: string;
+};
+
+export type RegisterCredentials = {
+    name: string;
+    email: string;
+    password: string;
+};
+
+export type LoginResponse = BaseResponse<{
+    token: string;
+    user: User;
+}>;
+
+export type RegisterResponse = BaseResponse<{
+    token: string;
+    user: User;
+}>;
+
+export type UpdateResponse = BaseResponse<{
+    user: User;
+}>;

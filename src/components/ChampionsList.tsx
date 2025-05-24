@@ -1,36 +1,14 @@
-import { useState, useEffect } from 'react';
+import { Champion } from "../types/champions";
 import { Link } from 'react-router-dom';
-import axios from '../api/axiosInstance';
-import { Champion, ApiResponse } from '../types/models';
 
-function ChampionsList() {
-  const [champions, setChampions] = useState<Champion[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  useEffect(() => {
-    axios.get<ApiResponse<Champion[]>>('/champions/list')
-      .then(response => {
-        console.log('Champions data:', response.data);
-        if (response.data && response.data.data) {
-          setChampions(response.data.data);
-        } else {
-          setError('Invalid data format from API');
-        }
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching champions:', error);
-        setError('Failed to load champions');
-        setLoading(false);
-      });
-  }, []);
-  
-  if (loading) return <div className="loading">Loading champions...</div>;
-  if (error) return <div className="error">{error}</div>;
-  
-  return (
-    <div className="champions-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+type Props = {
+    champions: Champion[];
+};
+
+function ChampionsList({ champions }: Props) {
+    return (
+
+        <div className="champions-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold mb-6">League of Legends Rework Vault</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -59,7 +37,7 @@ function ChampionsList() {
         ))}
       </div>
     </div>
-  );
+    );
 }
 
 export default ChampionsList;
