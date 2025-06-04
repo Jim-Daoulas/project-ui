@@ -19,6 +19,4 @@ export type Champion = {
   updated_at?: string;
 }
 
-export type ChampionsResponse = BaseResponse<{
-    champions: Champion[];
-}>;
+export type ChampionsResponse = BaseResponse<Champion[]>;
