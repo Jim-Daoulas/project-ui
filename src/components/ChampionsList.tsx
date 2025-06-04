@@ -180,14 +180,16 @@ useEffect(() => {
             >
               {/* Background Image */}
               <img
-                src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
-                alt={champion.name}
-                className="absolute inset-0 w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
-                }}
-              />
+  src={champion.image_url || `https://via.placeholder.com/400x500/667eea/ffffff?text=${encodeURIComponent(champion.name.charAt(0))}`}
+  alt={champion.name}
+  className="absolute inset-0 w-full h-full object-cover"
+  onError={(e) => {
+    const target = e.target as HTMLImageElement;
+    // Χρησιμοποίησε ένα σταθερό placeholder
+    target.src = `https://placehold.co/400x500/667eea/ffffff/png?text=${encodeURIComponent(champion.name.charAt(0))}`;
+  }}
+/>
+             
               
               {/* Bottom bar with champion name */}
               <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
