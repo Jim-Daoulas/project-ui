@@ -27,7 +27,7 @@ const ChampionsList = ({
       try {
         setLoading(true);
         setError(null);
-        const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
+        const response = await axiosInstance.get<ChampionsResponse>('/champions');
         console.log('API Response:', response.data);
         
         if (response.data.success && Array.isArray(response.data.data)) {
