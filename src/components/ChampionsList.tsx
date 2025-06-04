@@ -22,35 +22,40 @@ const ChampionsList = ({
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
 
   // Fetch champions from API
-  useEffect(() => {
-    const fetchChampions = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
-        console.log('API Response:', response.data);
-        
-        if (response.data.success && Array.isArray(response.data.data)) {
-          setChampions(response.data.data);
-          console.log('Champions loaded:', response.data.data);
-        } else if (Array.isArray(response.data)) {
-          // Fallback if data is directly an array
-          setChampions(response.data);
-          console.log('Champions loaded (fallback):', response.data);
-        } else {
-          console.error('Unexpected data format:', response.data);
-          setError('Failed to fetch champions - unexpected data format');
-        }
-      } catch (err) {
-        setError('Error fetching champions');
-        console.error('Error fetching champions:', err);
-      } finally {
-        setLoading(false);
+useEffect(() => {
+  const fetchChampions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('Making request to:', '/champions/champions');
+      const response = await axiosInstance.get('/champions/champions');
+      
+      console.log('Full response:', response);
+      console.log('Response data:', response.data);
+      console.log('Response status:', response.status);
+      
+      // Προσωρινά, βάλε τα δεδομένα άμεσα από το response που είδαμε
+      if (response.data && response.data.data) {
+        setChampions(response.data.data);
+        console.log('Champions set:', response.data.data);
+      } else {
+        console.error('No data found in response');
+        setError('No champions data found');
       }
-    };
+      
+    } catch (err) {
+      console.error('Full error object:', err);
+      console.error('Error response:', err.response);
+      console.error('Error message:', err.message);
+      setError(`Error: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchChampions();
-  }, []);
+  fetchChampions();
+}, []);
 
   // Filter champions based on search and filters
   const filteredChampions = (champions || []).filter(champion => {
