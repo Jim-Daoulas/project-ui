@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
-import { useAuth } from '../context/AuthContext';
+
 import ChampionInfo from '../components/ChampionsInformation';
 import ChampionAbilities from '../components/ChampionsAbility';
 import SkinsGallery from '../components/SkinsGallery';
@@ -14,7 +14,7 @@ interface ChampionResponse extends BaseResponse<Champion> {}
 
 const ChampionDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+ 
   const [champion, setChampion] = useState<Champion | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -1,0 +1,17 @@
+[build]
+  # Directory where the build artifacts are located
+  publish = "dist"
+  
+  # Build command
+  command = "npm run build"
+
+# Redirects for React Router (SPA)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Environment variables (optional - you can also set these in Netlify dashboard)
+[build.environment]
+  # Set your Railway API URL here
+  VITE_API_URL = "https://your-railway-domain.railway.app"

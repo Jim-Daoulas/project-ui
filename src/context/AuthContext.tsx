@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { LoginResponse, User } from "../types/user";
 import axiosInstance from "../api/axiosInstance";
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 
 
