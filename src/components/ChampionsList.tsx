@@ -21,41 +21,55 @@ const ChampionsList = ({
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
 
-  // Fetch champions from API
-useEffect(() => {
-  const fetchChampions = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log('Making request to:', '/champions/champions');
-      const response = await axiosInstance.get('/champions/champions');
-      
-      console.log('Full response:', response);
-      console.log('Response data:', response.data);
-      console.log('Response status:', response.status);
-      
-      // Προσωρινά, βάλε τα δεδομένα άμεσα από το response που είδαμε
-      if (response.data && response.data.data) {
-        setChampions(response.data.data);
-        console.log('Champions set:', response.data.data);
-      } else {
-        console.error('No data found in response');
-        setError('No champions data found');
-      }
-      
-    } catch (err) {
-      console.error('Full error object:', err);
-      console.error('Error response:', err.response);
-      console.error('Error message:', err.message);
-      setError(`Error: ${err.message}`);
-    } finally {
-      setLoading(false);
+  // Helper function για fallback images
+  const getChampionImage = (champion: Champion): string => {
+    // Πρώτα δοκιμάστε το avatar_url από Spatie Media
+    if (champion.avatar_url) {
+      return champion.avatar_url;
     }
+    
+    // Μετά το image_url
+    if (champion.image_url) {
+      if (champion.image_url.startsWith('http')) {
+        return champion.image_url;
+      }
+      return `${axiosInstance.defaults.baseURL}/storage/${champion.image_url}`;
+    }
+    
+    // Fallback
+    return `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.name}_0.jpg`;
   };
 
-  fetchChampions();
-}, []);
+  // Fetch champions from API
+  useEffect(() => {
+    const fetchChampions = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
+        console.log('API Response:', response.data);
+        
+        if (response.data.success && Array.isArray(response.data.data)) {
+          setChampions(response.data.data);
+          console.log('Champions loaded:', response.data.data);
+        } else if (Array.isArray(response.data)) {
+          // Fallback if data is directly an array
+          setChampions(response.data);
+          console.log('Champions loaded (fallback):', response.data);
+        } else {
+          console.error('Unexpected data format:', response.data);
+          setError('Failed to fetch champions - unexpected data format');
+        }
+      } catch (err) {
+        setError('Error fetching champions');
+        console.error('Error fetching champions:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChampions();
+  }, []);
 
   // Filter champions based on search and filters
   const filteredChampions = (champions || []).filter(champion => {
@@ -178,25 +192,47 @@ useEffect(() => {
               to={`/champions/${champion.id}`}
               className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
             >
-              {/* Background Image */}
+              {/* Background Image with improved error handling */}
               <img
-  src={champion.image_url || `https://via.placeholder.com/400x500/667eea/ffffff?text=${encodeURIComponent(champion.name.charAt(0))}`}
-  alt={champion.name}
-  className="absolute inset-0 w-full h-full object-cover"
-  onError={(e) => {
-    const target = e.target as HTMLImageElement;
-    // Χρησιμοποίησε ένα σταθερό placeholder
-    target.src = `https://placehold.co/400x500/667eea/ffffff/png?text=${encodeURIComponent(champion.name.charAt(0))}`;
-  }}
-/>
-             
+                src={getChampionImage(champion)}
+                alt={champion.name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  // First fallback: try Riot CDN
+                  if (!target.src.includes('ddragon.leagueoflegends.com')) {
+                    target.src = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.name}_0.jpg`;
+                  } else {
+                    // Second fallback: placeholder with champion initial
+                    target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
+                  }
+                }}
+                loading="lazy"
+              />
               
-              {/* Bottom bar with champion name */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
-                <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              
+              {/* Champion Info */}
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <h2 className="text-white font-bold text-lg uppercase tracking-wide mb-1">
                   {champion.name}
                 </h2>
+                <p className="text-gray-300 text-sm truncate">
+                  {champion.title}
+                </p>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">
+                    {champion.role}
+                  </span>
+                  <span className="text-xs text-gray-300">
+                    {champion.region}
+                  </span>
+                </div>
               </div>
+
+              {/* Hover effect */}
+              <div className="absolute inset-0 bg-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Link>
           ))}
         </div>

@@ -11,6 +11,7 @@ export type Champion = {
   region: string;
   description: string;
   image_url: string | null;
+  avatar_url?: string | null; 
   stats?: Record<string, any> | null;
   abilities?: Ability[];
   skins?: Skin[];
