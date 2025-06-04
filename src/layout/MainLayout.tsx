@@ -6,7 +6,7 @@ function MainLayout() {
     return (
         <div>
             <Header />
-            <div className="p-7">
+            <div className="">
                 <Outlet />
             </div>
             <Footer />

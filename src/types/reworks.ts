@@ -1,5 +1,6 @@
 import { BaseResponse } from "./helpers";
 import { ReworkAbility } from "./reworksabilities";
+import { Comment } from "./comments";
 
 export type Rework = {
   id: number;

@@ -1,12 +1,11 @@
-import { BaseResponse } from "./helpers.ts";
+import { BaseResponse } from "./helpers";
 
 export type User = {
-
-    id:number;
+    id: number;
     email: string;
     name: string;
-    create_at: string
-    uptade_at:string;
+    created_at: string;
+    updated_at: string;
 }
 
 export type LoginCredentials = {

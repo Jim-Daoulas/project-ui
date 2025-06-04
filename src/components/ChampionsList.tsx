@@ -1,43 +1,201 @@
-import { Champion } from "../types/champions";
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axiosInstance from '../api/axiosInstance';
+import { Champion, ChampionsResponse } from '../types/champions';
 
-type Props = {
-    champions: Champion[];
-};
-
-function ChampionsList({ champions }: Props) {
-    return (
-
-        <div className="champions-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold mb-6">League of Legends Rework Vault</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {champions.map(champion => (
-          <Link 
-            to={`/champions/${champion.id}`} 
-            key={champion.id}
-            className="champion-card bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-          >
-            <div className="h-98 overflow-hidden">
-              <img 
-                src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'} 
-                alt={champion.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="p-4">
-              <h2 className="text-xl font-bold text-white">{champion.name}</h2>
-              <p className="text-gray-300 italic mb-2">{champion.title}</p>
-              <div className="flex justify-between text-sm">
-                <span className="text-blue-400">{champion.role}</span>
-                <span className="text-amber-400">{champion.region}</span>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
-    );
+interface ChampionsListProps {
+  showFilters?: boolean;
+  showTitle?: boolean;
+  limit?: number;
 }
+
+const ChampionsList = ({ 
+  showFilters = true, 
+  showTitle = true, 
+  limit 
+}: ChampionsListProps) => {
+  const [champions, setChampions] = useState<Champion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRole, setSelectedRole] = useState<string>('all');
+  const [selectedRegion, setSelectedRegion] = useState<string>('all');
+
+  // Fetch champions from API
+  useEffect(() => {
+    const fetchChampions = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
+        console.log('API Response:', response.data);
+        
+        if (response.data.success && Array.isArray(response.data.data)) {
+          setChampions(response.data.data);
+          console.log('Champions loaded:', response.data.data);
+        } else if (Array.isArray(response.data)) {
+          // Fallback if data is directly an array
+          setChampions(response.data);
+          console.log('Champions loaded (fallback):', response.data);
+        } else {
+          console.error('Unexpected data format:', response.data);
+          setError('Failed to fetch champions - unexpected data format');
+        }
+      } catch (err) {
+        setError('Error fetching champions');
+        console.error('Error fetching champions:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChampions();
+  }, []);
+
+  // Filter champions based on search and filters
+  const filteredChampions = (champions || []).filter(champion => {
+    if (!champion) return false;
+    
+    const matchesSearch = (champion.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (champion.title || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = selectedRole === 'all' || champion.role === selectedRole;
+    const matchesRegion = selectedRegion === 'all' || champion.region === selectedRegion;
+    
+    return matchesSearch && matchesRole && matchesRegion;
+  }).slice(0, limit); // Apply limit if provided
+
+  // Get unique roles and regions for filters
+  const roles = [...new Set((champions || []).map(champion => champion?.role).filter(Boolean))];
+  const regions = [...new Set((champions || []).map(champion => champion?.region).filter(Boolean))];
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <span className="loading loading-spinner loading-lg"></span>
+        <span className="ml-4 text-lg">Loading champions...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="alert alert-error">
+        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>{error}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full min-h-screen">
+      {/* Title */}
+      {showTitle && (
+        <div className="mb-8 pt-8 px-8">
+          <h1 className="text-4xl font-bold mb-4 text-gray-800">League of Legends Rework Vault</h1>
+          <p className="text-lg text-gray-500">
+            Explore all League of Legends champions and their rework proposals
+          </p>
+        </div>
+      )}
+
+      {/* Filters */}
+      {showFilters && (
+        <div className="mb-8 px-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text text-gray-500">Search Champions</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Search by name or title..."
+              className="input input-bordered w-full text-gray-600 border-gray-600"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {/* Role Filter */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text text-white">Filter by Role</span>
+            </label>
+            <select
+              className="select select-bordered w-full text-gray-500 border-gray-600"
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+            >
+              <option value="all">All Roles</option>
+              {roles.map(role => (
+                <option key={role} value={role}>{role}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Region Filter */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text text-white">Filter by Region</span>
+            </label>
+            <select
+              className="select select-bordered w-full text-gray-500 border-gray-600"
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+            >
+              <option value="all">All Regions</option>
+              {regions.map(region => (
+                <option key={region} value={region}>{region}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* Results Count */}
+      <div className="mb-6 px-8 text-sm text-gray-400">
+        Showing {filteredChampions.length} of {champions.length} champions
+      </div>
+
+      {/* Champions Grid */}
+      {filteredChampions.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">🔍</div>
+          <h3 className="text-xl font-semibold mb-2 text-white">No champions found</h3>
+          <p className="text-gray-400">Try adjusting your search or filters</p>
+        </div>
+      ) : (
+        <div className="px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredChampions.map(champion => (
+            <Link
+              key={champion.id}
+              to={`/champions/${champion.id}`}
+              className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
+            >
+              {/* Background Image */}
+              <img
+                src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
+                alt={champion.name}
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
+                }}
+              />
+              
+              {/* Bottom bar with champion name */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
+                <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+                  {champion.name}
+                </h2>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default ChampionsList;
