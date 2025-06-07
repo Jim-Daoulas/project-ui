@@ -1,4 +1,3 @@
-// src/components/SimpleProgress.tsx
 import React from 'react';
 import { useProgression } from '../hooks/useProgression';
 

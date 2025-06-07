@@ -5,6 +5,7 @@ export type Skin = {
   champion_id: number;
   name: string;
   image_url: string;
+  is_unlocked?: boolean;
 };
 
 export type CategoriesResponse = BaseResponse<{

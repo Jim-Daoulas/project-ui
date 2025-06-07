@@ -16,6 +16,7 @@ export type Champion = {
   abilities?: Ability[];
   skins?: Skin[];
   rework?: Rework | null;
+  is_unlocked?: boolean;
   created_at?: string;
   updated_at?: string;
 }
