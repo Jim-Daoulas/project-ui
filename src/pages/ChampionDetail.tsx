@@ -1,20 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
-
+import { useAuth } from '../context/AuthContext';
 import ChampionInfo from '../components/ChampionsInformation';
 import ChampionAbilities from '../components/ChampionsAbility';
 import SkinsGallery from '../components/SkinsGallery';
 import { Champion } from '../types/champions';
 import { BaseResponse } from '../types/helpers';
 import ChampionRework from '../components/ChampionRework';
+import { useProgression } from '../hooks/useProgression';
 
 // Types based on your structure
 interface ChampionResponse extends BaseResponse<Champion> {}
 
 const ChampionDetail = () => {
   const { id } = useParams<{ id: string }>();
- 
+  const { user } = useAuth();
+  const { trackChampionView } = useProgression();
   const [champion, setChampion] = useState<Champion | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +30,11 @@ const ChampionDetail = () => {
         const response = await axiosInstance.get<ChampionResponse>(`/champions/${id}`);
         if (response.data.success) {
           setChampion(response.data.data);
+          
+          // Track champion view for points (only if user is logged in)
+          if (user) {
+            trackChampionView(parseInt(id));
+          }
         } else {
           setError('Failed to fetch champion details');
         }
@@ -40,7 +47,7 @@ const ChampionDetail = () => {
     };
 
     fetchChampion();
-  }, [id]);
+  }, [id, user, trackChampionView]);
 
   if (loading) {
     return (
