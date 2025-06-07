@@ -19,36 +19,34 @@ function Register() {
         return validationErrors[field]?.[0] || "";
     };
 
-    // Validation helper
+    // Client-side validation that matches Laravel rules
     const validateForm = (): boolean => {
         const errors: Record<string, string[]> = {};
 
-        // Name validation
-        if (!name.trim()) {
-            errors.name = ["Name is required"];
-        } else if (name.trim().length < 2) {
-            errors.name = ["Name must be at least 2 characters"];
+        // Name validation - matches Laravel 'required|string'
+        if (!name || !name.trim()) {
+            errors.name = ["The name field is required."];
         }
 
-        // Email validation
-        if (!email.trim()) {
-            errors.email = ["Email is required"];
+        // Email validation - matches Laravel 'required|string|unique:users,email'
+        if (!email || !email.trim()) {
+            errors.email = ["The email field is required."];
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            errors.email = ["Please enter a valid email address"];
+            errors.email = ["The email must be a valid email address."];
         }
 
-        // Password validation
+        // Password validation - matches Laravel 'required|string|min:6'
         if (!password) {
-            errors.password = ["Password is required"];
+            errors.password = ["The password field is required."];
         } else if (password.length < 6) {
-            errors.password = ["Password must be at least 6 characters"];
+            errors.password = ["The password must be at least 6 characters."];
         }
 
-        // Confirm password validation
+        // Confirm password - custom validation (not in API)
         if (!confirmPassword) {
-            errors.confirmPassword = ["Please confirm your password"];
+            errors.confirmPassword = ["Please confirm your password."];
         } else if (password !== confirmPassword) {
-            errors.confirmPassword = ["Passwords do not match"];
+            errors.confirmPassword = ["Passwords do not match."];
         }
 
         setValidationErrors(errors);
@@ -60,7 +58,7 @@ function Register() {
         setError("");
         setValidationErrors({});
 
-        // Validate form
+        // Basic client-side validation
         if (!validateForm()) {
             return;
         }
@@ -76,16 +74,16 @@ function Register() {
         } catch (error: any) {
             console.error("Registration failed:", error);
             
-            // Handle different types of errors
+            // Handle Laravel validation errors
             if (error.response?.status === 422) {
-                // Validation errors from server
+                // Laravel validation errors format: { "errors": { "email": ["The email has already been taken."] } }
                 const serverErrors = error.response.data.errors || {};
                 setValidationErrors(serverErrors);
-                setError("Please fix the validation errors below");
-            } else if (error.response?.status === 409) {
-                // Conflict - email already exists
-                setValidationErrors({ email: ["This email is already registered"] });
-                setError("Email already exists");
+                
+                // Show general error message
+                const errorMessages = Object.values(serverErrors).flat() as string[];
+                setError(errorMessages.length > 1 ? "Please fix the errors below." : errorMessages[0] || "");
+                
             } else if (error.response?.data?.message) {
                 // Other server errors
                 setError(error.response.data.message);
@@ -105,7 +103,7 @@ function Register() {
                     ev.preventDefault();
                     handleRegister();
                 }} 
-                className="flex flex-col gap-3 w-[350px] p-4 ring-1 ring-gray-500"
+                className="flex flex-col gap-3 w-[350px] p-4 ring-1 ring-gray-500 rounded-lg"
             >
                 <h1 className="text-xl font-bold text-center mb-4">Register</h1>
                 
@@ -127,7 +125,11 @@ function Register() {
                                 setName(ev.target.value);
                                 // Clear field error on change
                                 if (validationErrors.name) {
-                                    setValidationErrors(prev => ({ ...prev, name: [] }));
+                                    setValidationErrors(prev => {
+                                        const newErrors = { ...prev };
+                                        delete newErrors.name;
+                                        return newErrors;
+                                    });
                                 }
                             }}
                             required
@@ -152,7 +154,11 @@ function Register() {
                                 setEmail(ev.target.value);
                                 // Clear field error on change
                                 if (validationErrors.email) {
-                                    setValidationErrors(prev => ({ ...prev, email: [] }));
+                                    setValidationErrors(prev => {
+                                        const newErrors = { ...prev };
+                                        delete newErrors.email;
+                                        return newErrors;
+                                    });
                                 }
                             }}
                             required
@@ -177,7 +183,11 @@ function Register() {
                                 setPassword(ev.target.value);
                                 // Clear field error on change
                                 if (validationErrors.password) {
-                                    setValidationErrors(prev => ({ ...prev, password: [] }));
+                                    setValidationErrors(prev => {
+                                        const newErrors = { ...prev };
+                                        delete newErrors.password;
+                                        return newErrors;
+                                    });
                                 }
                             }}
                             required
@@ -203,7 +213,11 @@ function Register() {
                                 setConfirmPassword(ev.target.value);
                                 // Clear field error on change
                                 if (validationErrors.confirmPassword) {
-                                    setValidationErrors(prev => ({ ...prev, confirmPassword: [] }));
+                                    setValidationErrors(prev => {
+                                        const newErrors = { ...prev };
+                                        delete newErrors.confirmPassword;
+                                        return newErrors;
+                                    });
                                 }
                             }}
                             required
