@@ -4,6 +4,7 @@ export type User = {
     id: number;
     email: string;
     name: string;
+    points: number; // Προσθήκη points
     created_at: string;
     updated_at: string;
 }

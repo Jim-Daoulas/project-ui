@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 import { Champion, ChampionsResponse } from '../types/champions';
+import { useAuth } from '../context/AuthContext';
+import UnlockButton from './UnlockButton';
 
 interface ChampionsListProps {
   showFilters?: boolean;
@@ -11,33 +13,16 @@ interface ChampionsListProps {
 
 const ChampionsList = ({ 
   showFilters = true, 
+  showTitle = true, 
   limit 
 }: ChampionsListProps) => {
+  const { user } = useAuth();
   const [champions, setChampions] = useState<Champion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
-
-  // Helper function για fallback images
-  const getChampionImage = (champion: Champion): string => {
-    // Πρώτα δοκιμάστε το avatar_url από Spatie Media
-    if (champion.avatar_url) {
-      return champion.avatar_url;
-    }
-    
-    // Μετά το image_url
-    if (champion.image_url) {
-      if (champion.image_url.startsWith('http')) {
-        return champion.image_url;
-      }
-      return `${axiosInstance.defaults.baseURL}/storage/${champion.image_url}`;
-    }
-    
-    // Fallback
-    return `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.name}_0.jpg`;
-  };
 
   // Fetch champions from API
   useEffect(() => {
@@ -68,7 +53,7 @@ const ChampionsList = ({
     };
 
     fetchChampions();
-  }, []);
+  }, [user]); // Re-fetch when user changes (login/logout)
 
   // Filter champions based on search and filters
   const filteredChampions = (champions || []).filter(champion => {
@@ -85,6 +70,22 @@ const ChampionsList = ({
   // Get unique roles and regions for filters
   const roles = [...new Set((champions || []).map(champion => champion?.role).filter(Boolean))];
   const regions = [...new Set((champions || []).map(champion => champion?.region).filter(Boolean))];
+
+  // Handler για refresh μετά από unlock
+  const handleUnlockSuccess = () => {
+    // Re-fetch champions to get updated unlock status
+    const fetchChampions = async () => {
+      try {
+        const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
+        if (response.data.success && Array.isArray(response.data.data)) {
+          setChampions(response.data.data);
+        }
+      } catch (err) {
+        console.error('Error refreshing champions:', err);
+      }
+    };
+    fetchChampions();
+  };
 
   if (loading) {
     return (
@@ -108,6 +109,15 @@ const ChampionsList = ({
 
   return (
     <div className="w-full min-h-screen">
+      {/* Title */}
+      {showTitle && (
+        <div className="mb-8 pt-8 px-8">
+          <h1 className="text-4xl font-bold mb-4 text-gray-800">League of Legends Rework Vault</h1>
+          <p className="text-lg text-gray-500">
+            Explore all League of Legends champions and their rework proposals
+          </p>
+        </div>
+      )}
 
       {/* Filters */}
       {showFilters && (
@@ -177,53 +187,65 @@ const ChampionsList = ({
       ) : (
         <div className="px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredChampions.map(champion => (
-            <Link
+            <div
               key={champion.id}
-              to={`/champions/${champion.id}`}
               className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
             >
-              {/* Background Image with improved error handling */}
+              {/* Lock Overlay για locked champions */}
+              {!champion.is_unlocked && (
+                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+                  <div className="text-4xl mb-2">🔒</div>
+                  <div className="text-white text-center px-4">
+                    <p className="text-sm font-semibold mb-2">Locked Champion</p>
+                    <UnlockButton
+                      type="champion"
+                      id={champion.id}
+                      name={champion.name}
+                      cost={champion.unlock_cost}
+                      isUnlockedByDefault={champion.is_unlocked_by_default}
+                      className="btn-sm"
+                      onSuccess={handleUnlockSuccess}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Background Image */}
               <img
-                src={getChampionImage(champion)}
+                src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
                 alt={champion.name}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                className={`absolute inset-0 w-full h-full object-cover transition-all duration-300 ${
+                  !champion.is_unlocked ? 'grayscale blur-sm' : ''
+                }`}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  // First fallback: try Riot CDN
-                  if (!target.src.includes('ddragon.leagueoflegends.com')) {
-                    target.src = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.name}_0.jpg`;
-                  } else {
-                    // Second fallback: placeholder with champion initial
-                    target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
-                  }
+                  target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
                 }}
-                loading="lazy"
               />
               
-              {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              {/* Link to champion detail - μόνο αν είναι unlocked */}
+              {champion.is_unlocked && (
+                <Link 
+                  to={`/champions/${champion.id}`}
+                  className="absolute inset-0 z-5"
+                />
+              )}
               
-              {/* Champion Info */}
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <h2 className="text-white font-bold text-lg uppercase tracking-wide mb-1">
-                  {champion.name}
-                </h2>
-                <p className="text-gray-300 text-sm truncate">
-                  {champion.title}
-                </p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">
-                    {champion.role}
-                  </span>
-                  <span className="text-xs text-gray-300">
-                    {champion.region}
-                  </span>
+              {/* Bottom bar with champion name */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3 z-5">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+                    {champion.name}
+                  </h2>
+                  {champion.is_unlocked_by_default && (
+                    <div className="badge badge-success badge-sm">Free</div>
+                  )}
+                  {champion.is_unlocked && !champion.is_unlocked_by_default && (
+                    <div className="badge badge-primary badge-sm">Owned</div>
+                  )}
                 </div>
               </div>
-
-              {/* Hover effect */}
-              <div className="absolute inset-0 bg-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </Link>
+            </div>
           ))}
         </div>
       )}

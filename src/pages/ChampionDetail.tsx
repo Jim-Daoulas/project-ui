@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 import { useAuth } from '../context/AuthContext';
-import { useProgression } from '../hooks/useProgression';
+import { useProgression } from '../hooks/useUnlock';
 import ChampionInfo from '../components/ChampionsInformation';
 import ChampionAbilities from '../components/ChampionsAbility';
 import SkinsGallery from '../components/SkinsGallery';

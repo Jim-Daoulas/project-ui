@@ -8,6 +8,7 @@ import Register from './pages/Register.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import Champions from './pages/Champions.tsx';
 import ChampionDetail from './pages/ChampionDetail.tsx';
+import VaultPage from './pages/VaultPage.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -17,6 +18,7 @@ createRoot(document.getElementById('root')!).render(
         <Route element={<MainLayout/>}>
         <Route path='/' element={<Champions/>}></Route>
         <Route path='/champions/:id' element={<ChampionDetail/>}></Route>
+        <Route path='/vault' element={<VaultPage/>}></Route>
         <Route path='/login' element={<Login/>}></Route>
         <Route path='/register' element={<Register/>}></Route>
         </Route>

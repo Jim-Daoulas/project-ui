@@ -1,5 +1,5 @@
 import React from 'react';
-import { useProgression } from '../hooks/useProgression';
+import { useProgression } from '../hooks/useUnlock';
 
 interface SimpleProgressProps {
   compact?: boolean;

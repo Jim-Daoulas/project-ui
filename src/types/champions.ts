@@ -11,12 +11,16 @@ export type Champion = {
   region: string;
   description: string;
   image_url: string | null;
-  avatar_url?: string | null; 
   stats?: Record<string, any> | null;
+  // Unlock properties
+  unlock_cost: number;
+  is_unlocked_by_default: boolean;
+  is_unlocked?: boolean;
+  can_unlock?: boolean;
+  // Relations
   abilities?: Ability[];
   skins?: Skin[];
   rework?: Rework | null;
-  is_unlocked?: boolean;
   created_at?: string;
   updated_at?: string;
 }
