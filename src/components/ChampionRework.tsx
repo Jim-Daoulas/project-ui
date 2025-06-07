@@ -1,14 +1,20 @@
 import { useState } from 'react';
 import { Champion } from '../types/champions';
 import { Rework } from '../types/reworks';
+import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../api/axiosInstance';
 
 interface ChampionReworkProps {
     champion: Champion;
     rework?: Rework | null;
 }
-const ChampionRework = ({ champion, rework }: ChampionReworkProps) =>
- {
-    const [activeView, setActiveView] = useState<'current' | 'rework'>('current');
+
+const ChampionRework = ({ champion, rework }: ChampionReworkProps) => {
+    const { user } = useAuth();
+    const [comments, setComments] = useState(rework?.comments || []);
+    const [newComment, setNewComment] = useState('');
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+    const [commentError, setCommentError] = useState('');
 
     // Helper για τα χρώματα των stats
     const getStatColor = (currentValue: number, reworkValue: number) => {
@@ -34,6 +40,56 @@ const ChampionRework = ({ champion, rework }: ChampionReworkProps) =>
         if (!stats || typeof stats !== 'object') return 0;
         const value = stats[key];
         return typeof value === 'number' ? value : 0;
+    };
+
+    // Submit comment function
+    const handleSubmitComment = async () => {
+        if (!newComment.trim()) {
+            setCommentError('Please enter a comment');
+            return;
+        }
+
+        if (!user) {
+            setCommentError('You must be logged in to comment');
+            return;
+        }
+
+        if (!rework) {
+            setCommentError('No rework available to comment on');
+            return;
+        }
+
+        try {
+            setIsSubmittingComment(true);
+            setCommentError('');
+
+            const response = await axiosInstance.post(`/champions/${champion.id}/rework/comments`, {
+                content: newComment.trim()
+            });
+
+            if (response.data.success) {
+                // Add the new comment to the list
+                const newCommentData = {
+                    id: Date.now(), // Temporary ID
+                    rework_id: rework.id,
+                    user_id: user.id,
+                    content: newComment.trim(),
+                    created_at: new Date().toISOString(),
+                    user: { 
+                        id: user.id,
+                        name: user.name 
+                    }
+                };
+
+                setComments(prev => [...prev, newCommentData]);
+                setNewComment('');
+            }
+        } catch (error: any) {
+            console.error('Error submitting comment:', error);
+            setCommentError(error.response?.data?.message || 'Failed to submit comment');
+        } finally {
+            setIsSubmittingComment(false);
+        }
     };
 
     // Render stats comparison
@@ -145,218 +201,164 @@ const ChampionRework = ({ champion, rework }: ChampionReworkProps) =>
                 </p>
             </div>
 
-            {/* Toggle View */}
-            <div className="border-b border-gray-700">
-                <div className="flex">
-                    <button
-                        onClick={() => setActiveView('current')}
-                        className={`
-                            flex-1 px-6 py-4 font-medium transition-all duration-300
-                            ${activeView === 'current'
-                                ? 'bg-gray-800/50 text-white border-b-2 border-blue-400'
-                                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
-                            }
-                        `}
-                    >
-                        <div className="flex items-center justify-center gap-2">
-                            <span className="text-lg">📊</span>
-                            <span>Current State</span>
-                        </div>
-                    </button>
-                    <button
-                        onClick={() => setActiveView('rework')}
-                        className={`
-                            flex-1 px-6 py-4 font-medium transition-all duration-300
-                            ${activeView === 'rework'
-                                ? 'bg-gray-800/50 text-white border-b-2 border-purple-400'
-                                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
-                            }
-                        `}
-                    >
-                        <div className="flex items-center justify-center gap-2">
-                            <span className="text-lg">🔄</span>
-                            <span>Rework Proposal</span>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-6">
-                {activeView === 'current' ? (
-                    /* Current State View */
-                    <div className="space-y-6">
-                        <div>
-                            <h3 className="text-xl font-bold text-white mb-3">Current Champion State</h3>
-                            <p className="text-gray-300 leading-relaxed">
-                                {champion.description}
-                            </p>
-                        </div>
-
-                        {/* Current Stats */}
-                        <div>
-                            <h4 className="text-lg font-semibold text-white mb-4">Current Statistics</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                {[
-                                    { label: 'HP', value: getStat(champion.stats, 'hp'), icon: '❤️', color: 'text-red-400' },
-                                    { label: 'Mana', value: getStat(champion.stats, 'mana'), icon: '💙', color: 'text-blue-400' },
-                                    { label: 'Attack', value: getStat(champion.stats, 'attack'), icon: '⚔️', color: 'text-orange-400' },
-                                    { label: 'Defense', value: getStat(champion.stats, 'defense'), icon: '🛡️', color: 'text-green-400' },
-                                    { label: 'AP', value: getStat(champion.stats, 'ability_power'), icon: '🔮', color: 'text-purple-400' },
-                                ].map((stat) => (
-                                    <div key={stat.label} className="bg-gray-800/50 rounded-lg p-3 text-center">
-                                        <div className="text-2xl mb-1">{stat.icon}</div>
-                                        <div className={`text-lg font-bold ${stat.color}`}>{stat.value}</div>
-                                        <div className="text-xs text-gray-400">{stat.label}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Current Abilities */}
-                        {champion.abilities && champion.abilities.length > 0 && (
-                            <div>
-                                <h4 className="text-lg font-semibold text-white mb-4">Current Abilities</h4>
-                                <div className="space-y-3">
-                                    {champion.abilities.map((ability) => (
-                                        <div key={ability.id} className="bg-gray-800/30 rounded-lg p-4">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className={`
-                                                    w-10 h-10 rounded-lg
-                                                    bg-gradient-to-br ${getAbilityKeyColor(ability.key)}
-                                                    flex items-center justify-center text-white font-bold text-sm
-                                                `}>
-                                                    {ability.key.toUpperCase()}
-                                                </div>
-                                                <h5 className="text-white font-semibold">{ability.name}</h5>
-                                            </div>
-                                            <p className="text-gray-300 text-sm">{ability.description}</p>
-                                            {ability.image_url && (
-                                                <div className="mt-3">
-                                                    <img 
-                                                        src={ability.image_url} 
-                                                        alt={ability.name}
-                                                        className="w-16 h-16 rounded-lg object-cover"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLImageElement;
-                                                            target.style.display = 'none';
-                                                        }}
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+            {/* Rework Content */}
+            <div className="p-6 space-y-6">
+                {/* Rework Info */}
+                <div>
+                    <h3 className="text-xl font-bold text-white mb-2">{rework.title}</h3>
+                    <p className="text-gray-300 leading-relaxed mb-4">
+                        {rework.summary}
+                    </p>
+                    <div className="text-sm text-gray-400">
+                        Proposed by: <span className="text-white">Admin User</span>
+                        {rework.created_at && (
+                            <span className="ml-4">
+                                Created: {new Date(rework.created_at).toLocaleDateString()}
+                            </span>
                         )}
                     </div>
-                ) : (
-                    /* Rework Proposal View */
-                    <div className="space-y-6">
-                        <div>
-                            <h3 className="text-xl font-bold text-white mb-2">{rework.title}</h3>
-                            <p className="text-gray-300 leading-relaxed mb-4">
-                                {rework.summary}
-                            </p>
-                            <div className="text-sm text-gray-400">
-                                Proposed by: <span className="text-white">Admin User</span>
-                                {rework.created_at && (
-                                    <span className="ml-4">
-                                        Created: {new Date(rework.created_at).toLocaleDateString()}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+                </div>
 
-                        {/* Stats Comparison */}
-                        <div>
-                            <h4 className="text-lg font-semibold text-white mb-4">Statistics Changes</h4>
-                            {renderStatsComparison()}
-                        </div>
+                {/* Stats Comparison */}
+                <div>
+                    <h4 className="text-lg font-semibold text-white mb-4">Statistics Changes</h4>
+                    {renderStatsComparison()}
+                </div>
 
-                        {/* Reworked Abilities */}
-                        {rework.abilities && rework.abilities.length > 0 && (
-                            <div>
-                                <h4 className="text-lg font-semibold text-white mb-4">Reworked Abilities</h4>
-                                <div className="space-y-3">
-                                    {rework.abilities.map((ability) => (
-                                        <div key={ability.id} className="bg-gray-800/30 rounded-lg p-4 border-l-4 border-purple-500">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className={`
-                                                    w-10 h-10 rounded-lg
-                                                    bg-gradient-to-br ${getAbilityKeyColor(ability.key)}
-                                                    flex items-center justify-center text-white font-bold text-sm
-                                                `}>
-                                                    {ability.key.toUpperCase()}
-                                                </div>
-                                                <h5 className="text-white font-semibold">{ability.name}</h5>
-                                                <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded">REWORKED</span>
-                                            </div>
-                                            <p className="text-gray-300 text-sm mb-3">{ability.description}</p>
-                                            
-                                            {/* Ability Image */}
-                                            {ability.image_url && (
-                                                <div className="mb-3">
-                                                    <img 
-                                                        src={ability.image_url} 
-                                                        alt={ability.name}
-                                                        className="w-16 h-16 rounded-lg object-cover"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLImageElement;
-                                                            target.style.display = 'none';
-                                                        }}
-                                                    />
-                                                </div>
-                                            )}
+                {/* Reworked Abilities */}
+                {rework.abilities && rework.abilities.length > 0 && (
+                    <div>
+                        <h4 className="text-lg font-semibold text-white mb-4">Reworked Abilities</h4>
+                        <div className="space-y-3">
+                            {rework.abilities.map((ability) => (
+                                <div key={ability.id} className="bg-gray-800/30 rounded-lg p-4 border-l-4 border-purple-500">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className={`
+                                            w-10 h-10 rounded-lg
+                                            bg-gradient-to-br ${getAbilityKeyColor(ability.key)}
+                                            flex items-center justify-center text-white font-bold text-sm
+                                        `}>
+                                            {ability.key.toUpperCase()}
+                                        </div>
+                                        <h5 className="text-white font-semibold">{ability.name}</h5>
+                                        <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded">REWORKED</span>
+                                    </div>
+                                    <p className="text-gray-300 text-sm mb-3">{ability.description}</p>
+                                    
+                                    {/* Ability Image */}
+                                    {ability.image_url && (
+                                        <div className="mb-3">
+                                            <img 
+                                                src={ability.image_url} 
+                                                alt={ability.name}
+                                                className="w-16 h-16 rounded-lg object-cover"
+                                                onError={(e) => {
+                                                    const target = e.target as HTMLImageElement;
+                                                    target.style.display = 'none';
+                                                }}
+                                            />
+                                        </div>
+                                    )}
 
-                                            {/* Ability Details */}
-                                            {ability.details && typeof ability.details === 'object' && (
-                                                <div className="mt-3 p-3 bg-gray-700/30 rounded">
-                                                    <h6 className="text-white text-xs font-semibold mb-2">Details:</h6>
-                                                    <div className="text-gray-300 text-xs space-y-1">
-                                                        {Object.entries(ability.details).map(([key, value]) => (
-                                                            <div key={key} className="flex justify-between">
-                                                                <span className="capitalize">{key.replace(/_/g, ' ')}:</span>
-                                                                <span>{String(value)}</span>
-                                                            </div>
-                                                        ))}
+                                    {/* Ability Details */}
+                                    {ability.details && typeof ability.details === 'object' && (
+                                        <div className="mt-3 p-3 bg-gray-700/30 rounded">
+                                            <h6 className="text-white text-xs font-semibold mb-2">Details:</h6>
+                                            <div className="text-gray-300 text-xs space-y-1">
+                                                {Object.entries(ability.details).map(([key, value]) => (
+                                                    <div key={key} className="flex justify-between">
+                                                        <span className="capitalize">{key.replace(/_/g, ' ')}:</span>
+                                                        <span>{String(value)}</span>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Comments Section */}
-                        {rework.comments && rework.comments.length > 0 && (
-                            <div>
-                                <h4 className="text-lg font-semibold text-white mb-4">Community Feedback</h4>
-                                <div className="space-y-3">
-                                    {rework.comments.map((comment) => (
-                                        <div key={comment.id} className="bg-gray-800/30 rounded-lg p-4">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                                    U
-                                                </div>
-                                                <span className="text-gray-400 text-sm">
-                                                    User #{comment.user_id}
-                                                </span>
-                                                {comment.created_at && (
-                                                    <span className="text-gray-500 text-xs">
-                                                        {new Date(comment.created_at).toLocaleDateString()}
-                                                    </span>
-                                                )}
+                                                ))}
                                             </div>
-                                            <p className="text-gray-300 text-sm">{comment.content}</p>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
-                            </div>
-                        )}
+                            ))}
+                        </div>
                     </div>
                 )}
+
+                {/* Comments Section */}
+                <div>
+                    <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        💬 Community Feedback
+                        <span className="text-sm text-gray-400">({comments.length})</span>
+                    </h4>
+                    
+                    {/* Add Comment Form */}
+                    {user ? (
+                        <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
+                            <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                    {user.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="flex-1">
+                                    <textarea
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        placeholder="Share your thoughts on this rework proposal..."
+                                        className="w-full bg-gray-700 text-white rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        rows={3}
+                                        maxLength={500}
+                                    />
+                                    {commentError && (
+                                        <div className="text-red-400 text-sm mt-2">{commentError}</div>
+                                    )}
+                                    <div className="flex items-center justify-between mt-3">
+                                        <span className="text-gray-400 text-sm">
+                                            {newComment.length}/500 characters
+                                        </span>
+                                        <button
+                                            onClick={handleSubmitComment}
+                                            disabled={isSubmittingComment || !newComment.trim()}
+                                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                                        >
+                                            {isSubmittingComment ? 'Posting...' : 'Post Comment'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="bg-gray-800/50 rounded-lg p-4 mb-4 text-center">
+                            <p className="text-gray-400 mb-3">You must be logged in to comment on rework proposals.</p>
+                            <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+                                Login to Comment
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Comments List */}
+                    {comments.length > 0 ? (
+                        <div className="space-y-3">
+                            {comments.map((comment) => (
+                                <div key={comment.id} className="bg-gray-800/30 rounded-lg p-4">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                            {comment.user?.name?.charAt(0).toUpperCase() || 'U'}
+                                        </div>
+                                        <span className="text-gray-300 font-medium">
+                                            {comment.user?.name || `User #${comment.user_id}`}
+                                        </span>
+                                        {comment.created_at && (
+                                            <span className="text-gray-500 text-xs">
+                                                {new Date(comment.created_at).toLocaleDateString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-gray-300 text-sm leading-relaxed">{comment.content}</p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8">
+                            <div className="text-4xl mb-2">💭</div>
+                            <p className="text-gray-400">No comments yet. Be the first to share your thoughts!</p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

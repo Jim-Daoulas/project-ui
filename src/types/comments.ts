@@ -7,6 +7,11 @@ export type Comment = {
   content: string;
   created_at?: string;
   updated_at?: string;
+  user?: {
+    id: number;
+    name: string;
+    email?: string;
+  };
 }
 
 export type CommentsResponse = BaseResponse<{
