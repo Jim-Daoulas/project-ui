@@ -172,7 +172,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
                 <div className="flex justify-center mt-4 gap-2">
                     <button 
                         onClick={goToPreviousSkin}
-                        className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
+                        className="px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
                         title="Previous skin"
                     >
                         ←
@@ -182,7 +182,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
                     </span>
                     <button 
                         onClick={goToNextSkin}
-                        className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
+                        className="px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
                         title="Next skin"
                     >
                         →
