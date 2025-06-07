@@ -11,7 +11,6 @@ interface ChampionsListProps {
 
 const ChampionsList = ({ 
   showFilters = true, 
-  showTitle = true, 
   limit 
 }: ChampionsListProps) => {
   const [champions, setChampions] = useState<Champion[]>([]);
@@ -109,15 +108,6 @@ const ChampionsList = ({
 
   return (
     <div className="w-full min-h-screen">
-      {/* Title */}
-      {showTitle && (
-        <div className="mb-8 pt-8 px-8">
-          <h1 className="text-4xl font-bold mb-4 text-gray-800">League of Legends Rework Vault</h1>
-          <p className="text-lg text-gray-500">
-            Explore all League of Legends champions and their rework proposals
-          </p>
-        </div>
-      )}
 
       {/* Filters */}
       {showFilters && (

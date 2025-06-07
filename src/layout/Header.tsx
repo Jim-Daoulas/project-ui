@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-function Header() {
+function Header(showTitle = true) {
   const {user, logout}=useAuth();
   const navigate = useNavigate();
   const handleLogout = () => {
@@ -19,7 +19,11 @@ function Header() {
         <div className="navbar bg-base-100 shadow-sm">
         <div className="flex-1">
         <Link to="/">
-                  Home
+                  {showTitle && (
+        <div className="mb-8 pt-8 px-8">
+          <h1 className="text-4xl font-bold mb-4 text-gray-800">League of Legends Rework Vault</h1>
+        </div>
+      )}
         </Link>
         </div>
         <div className="flex gap-2">
