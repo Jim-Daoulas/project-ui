@@ -39,9 +39,26 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
         }
     };
 
-    // Debug: Log τα skins data
-    console.log('Skins data:', skins);
-    console.log('Champion name:', championName);
+    // Navigation functions
+    const goToPreviousSkin = () => {
+        const currentIndex = skins.findIndex(s => s.id === selectedSkin?.id);
+        if (currentIndex > 0) {
+            handleSkinSelect(skins[currentIndex - 1]);
+        } else {
+            // Loop to last skin
+            handleSkinSelect(skins[skins.length - 1]);
+        }
+    };
+
+    const goToNextSkin = () => {
+        const currentIndex = skins.findIndex(s => s.id === selectedSkin?.id);
+        if (currentIndex < skins.length - 1) {
+            handleSkinSelect(skins[currentIndex + 1]);
+        } else {
+            // Loop to first skin
+            handleSkinSelect(skins[0]);
+        }
+    };
 
     if (!skins || skins.length === 0) {
         return (
@@ -150,26 +167,23 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
                 ))}
             </div>
 
-            {/* Navigation arrows για manual scrolling */}
-            {skins.length > 5 && (
+            {/* Navigation arrows για skin navigation */}
+            {skins.length > 1 && (
                 <div className="flex justify-center mt-4 gap-2">
                     <button 
-                        onClick={() => {
-                            if (thumbnailsRef.current) {
-                                thumbnailsRef.current.scrollBy({ left: -200, behavior: 'smooth' });
-                            }
-                        }}
+                        onClick={goToPreviousSkin}
                         className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
+                        title="Previous skin"
                     >
                         ←
                     </button>
+                    <span className="flex items-center px-4 text-gray-400 text-sm">
+                        {skins.findIndex(s => s.id === selectedSkin?.id) + 1} / {skins.length}
+                    </span>
                     <button 
-                        onClick={() => {
-                            if (thumbnailsRef.current) {
-                                thumbnailsRef.current.scrollBy({ left: 200, behavior: 'smooth' });
-                            }
-                        }}
+                        onClick={goToNextSkin}
                         className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
+                        title="Next skin"
                     >
                         →
                     </button>
