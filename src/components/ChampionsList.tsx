@@ -25,30 +25,36 @@ const ChampionsList = ({
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
 
   // Fetch champions from API
-  useEffect(() => {
-    const fetchChampions = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
-        
-        if (response.data.success && Array.isArray(response.data.data)) {
-          setChampions(response.data.data);
-        } else if (Array.isArray(response.data)) {
-          setChampions(response.data);
-        } else {
-          setError('Failed to fetch champions - unexpected data format');
-        }
-      } catch (err) {
-        setError('Error fetching champions');
-        console.error('Error fetching champions:', err);
-      } finally {
-        setLoading(false);
+useEffect(() => {
+  const fetchChampions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
+      
+      if (response.data.success && Array.isArray(response.data.data)) {
+        setChampions(response.data.data);
+        // ✅ ΠΡΟΣΘΕΣΕ ΕΔΩ:
+        console.log('🎮 Champions loaded:', response.data.data.length);
+        console.log('🔍 First champion:', response.data.data[0]);
+      } else if (Array.isArray(response.data)) {
+        setChampions(response.data);
+        // ✅ ΚΑΙ ΕΔΩ:
+        console.log('🎮 Champions loaded (fallback):', response.data.length);
+        console.log('🔍 First champion:', response.data[0]);
+      } else {
+        setError('Failed to fetch champions - unexpected data format');
       }
-    };
+    } catch (err) {
+      setError('Error fetching champions');
+      console.error('Error fetching champions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchChampions();
-  }, [user]);
+  fetchChampions();
+}, [user]);
 
   // Filter champions
   const filteredChampions = (champions || []).filter(champion => {
@@ -180,6 +186,13 @@ const ChampionsList = ({
           {filteredChampions.map(champion => {
             // ✅ UPDATED: Use new field names
             const isUnlocked = champion.user_has_unlocked || champion.is_unlocked_by_default;
+            // ✅ ΠΡΟΣΘΕΣΕ ΕΔΩ (μετά το const isUnlocked):
+      console.log(`🔍 Champion ${champion.name}:`, {
+        isUnlocked,
+        user_has_unlocked: champion.user_has_unlocked,
+        is_unlocked_by_default: champion.is_unlocked_by_default,
+        user_can_unlock: champion.user_can_unlock
+      });
             
             return (
               <div
