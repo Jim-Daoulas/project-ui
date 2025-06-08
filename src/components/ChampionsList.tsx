@@ -24,6 +24,11 @@ const ChampionsList = ({
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
 
+  // Temporary debug - remove after testing
+useEffect(() => {
+  console.log('🔄 Component mounted, user:', user);
+  console.log('📊 Champions state:', champions.length);
+}, [user, champions]);
   // Fetch champions from API
 useEffect(() => {
   const fetchChampions = async () => {
