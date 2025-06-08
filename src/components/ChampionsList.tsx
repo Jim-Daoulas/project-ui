@@ -31,17 +31,12 @@ const ChampionsList = ({
         setLoading(true);
         setError(null);
         const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
-        console.log('API Response:', response.data);
         
         if (response.data.success && Array.isArray(response.data.data)) {
           setChampions(response.data.data);
-          console.log('Champions loaded:', response.data.data);
         } else if (Array.isArray(response.data)) {
-          // Fallback if data is directly an array
           setChampions(response.data);
-          console.log('Champions loaded (fallback):', response.data);
         } else {
-          console.error('Unexpected data format:', response.data);
           setError('Failed to fetch champions - unexpected data format');
         }
       } catch (err) {
@@ -53,27 +48,26 @@ const ChampionsList = ({
     };
 
     fetchChampions();
-  }, [user]); // Re-fetch when user changes (login/logout)
+  }, [user]);
 
-  // Filter champions based on search and filters
+  // Filter champions
   const filteredChampions = (champions || []).filter(champion => {
     if (!champion) return false;
     
     const matchesSearch = (champion.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (champion.title || '').toLowerCase().includes(searchQuery.toLowerCase());
+      (champion.title || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = selectedRole === 'all' || champion.role === selectedRole;
     const matchesRegion = selectedRegion === 'all' || champion.region === selectedRegion;
     
     return matchesSearch && matchesRole && matchesRegion;
-  }).slice(0, limit); // Apply limit if provided
+  }).slice(0, limit);
 
-  // Get unique roles and regions for filters
+  // Get unique roles and regions
   const roles = [...new Set((champions || []).map(champion => champion?.role).filter(Boolean))];
   const regions = [...new Set((champions || []).map(champion => champion?.region).filter(Boolean))];
 
   // Handler για refresh μετά από unlock
   const handleUnlockSuccess = () => {
-    // Re-fetch champions to get updated unlock status
     const fetchChampions = async () => {
       try {
         const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
@@ -122,7 +116,6 @@ const ChampionsList = ({
       {/* Filters */}
       {showFilters && (
         <div className="mb-8 px-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Search */}
           <div className="form-control">
             <label className="label">
               <span className="label-text text-gray-500">Search Champions</span>
@@ -136,7 +129,6 @@ const ChampionsList = ({
             />
           </div>
 
-          {/* Role Filter */}
           <div className="form-control">
             <label className="label">
               <span className="label-text text-white">Filter by Role</span>
@@ -153,7 +145,6 @@ const ChampionsList = ({
             </select>
           </div>
 
-          {/* Region Filter */}
           <div className="form-control">
             <label className="label">
               <span className="label-text text-white">Filter by Region</span>
@@ -186,67 +177,75 @@ const ChampionsList = ({
         </div>
       ) : (
         <div className="px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredChampions.map(champion => (
-            <div
-              key={champion.id}
-              className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
-            >
-              {/* Lock Overlay για locked champions */}
-              {!champion.is_unlocked && (
-                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-                  <div className="text-4xl mb-2">🔒</div>
-                  <div className="text-white text-center px-4">
-                    <p className="text-sm font-semibold mb-2">Locked Champion</p>
-                    <UnlockButton
-                      type="champion"
-                      id={champion.id}
-                      name={champion.name}
-                      cost={champion.unlock_cost}
-                      isUnlockedByDefault={champion.is_unlocked_by_default}
-                      className="btn-sm"
-                      onSuccess={handleUnlockSuccess}
-                    />
+          {filteredChampions.map(champion => {
+            // ✅ UPDATED: Use new field names
+            const isUnlocked = champion.user_has_unlocked || champion.is_unlocked_by_default;
+            
+            return (
+              <div
+                key={champion.id}
+                className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
+              >
+                {/* ✅ UPDATED: Lock Overlay */}
+                {!isUnlocked && (
+                  <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+                    <div className="text-4xl mb-2">🔒</div>
+                    <div className="text-white text-center px-4">
+                      <p className="text-sm font-semibold mb-2">Locked Champion</p>
+                      <UnlockButton
+                        type="champion"
+                        id={champion.id}
+                        name={champion.name}
+                        cost={champion.unlock_cost}
+                        isUnlockedByDefault={champion.is_unlocked_by_default}
+                        isUnlocked={champion.user_has_unlocked}
+                        canUnlock={champion.user_can_unlock}
+                        className="btn-sm"
+                        onSuccess={handleUnlockSuccess}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Background Image */}
+                <img
+                  src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
+                  alt={champion.name}
+                  className={`absolute inset-0 w-full h-full object-cover transition-all duration-300 ${
+                    !isUnlocked ? 'grayscale blur-sm' : ''
+                  }`}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
+                  }}
+                />
+                
+                {/* ✅ UPDATED: Link only if unlocked */}
+                {isUnlocked && (
+                  <Link 
+                    to={`/champions/${champion.id}`}
+                    className="absolute inset-0 z-5"
+                  />
+                )}
+                
+                {/* Bottom bar */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3 z-5">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+                      {champion.name}
+                    </h2>
+                    {champion.is_unlocked_by_default && (
+                      <div className="badge badge-success badge-sm">Free</div>
+                    )}
+                    {/* ✅ UPDATED: Use new field name */}
+                    {champion.user_has_unlocked && !champion.is_unlocked_by_default && (
+                      <div className="badge badge-primary badge-sm">Owned</div>
+                    )}
                   </div>
                 </div>
-              )}
-
-              {/* Background Image */}
-              <img
-                src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
-                alt={champion.name}
-                className={`absolute inset-0 w-full h-full object-cover transition-all duration-300 ${
-                  !champion.is_unlocked ? 'grayscale blur-sm' : ''
-                }`}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
-                }}
-              />
-              
-              {/* Link to champion detail - μόνο αν είναι unlocked */}
-              {champion.is_unlocked && (
-                <Link 
-                  to={`/champions/${champion.id}`}
-                  className="absolute inset-0 z-5"
-                />
-              )}
-              
-              {/* Bottom bar with champion name */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3 z-5">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-white font-bold text-lg uppercase tracking-wide">
-                    {champion.name}
-                  </h2>
-                  {champion.is_unlocked_by_default && (
-                    <div className="badge badge-success badge-sm">Free</div>
-                  )}
-                  {champion.is_unlocked && !champion.is_unlocked_by_default && (
-                    <div className="badge badge-primary badge-sm">Owned</div>
-                  )}
-                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

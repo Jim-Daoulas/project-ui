@@ -17,6 +17,8 @@ export type Champion = {
   is_unlocked_by_default: boolean;
   is_unlocked?: boolean;
   can_unlock?: boolean;
+  user_has_unlocked?: boolean;
+  user_can_unlock?: boolean;
   // Relations
   abilities?: Ability[];
   skins?: Skin[];

@@ -139,15 +139,7 @@ export const useUnlock = () => {
     }
   };
 
-  // Helper functions
-  const isChampionUnlocked = (championId: number): boolean => {
-    return userProgress?.unlocked_champion_ids.includes(championId) || false;
-  };
-
-  const isSkinUnlocked = (skinId: number): boolean => {
-    return userProgress?.unlocked_skin_ids.includes(skinId) || false;
-  };
-
+  // ✅ UPDATED: Simplified helper function - only for affordability check
   const canAfford = (cost: number): boolean => {
     return (userProgress?.points || 0) >= cost;
   };
@@ -171,8 +163,6 @@ export const useUnlock = () => {
     fetchAvailableUnlocks,
     fetchLockedItems,
     addPoints,
-    isChampionUnlocked,
-    isSkinUnlocked,
     canAfford,
     clearError: () => setError(null)
   };

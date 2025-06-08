@@ -8,8 +8,10 @@ interface UnlockButtonProps {
   name: string;
   cost: number;
   isUnlockedByDefault?: boolean;
+  isUnlocked?: boolean;        // ✅ NEW: Direct unlock status from API
+  canUnlock?: boolean;         // ✅ NEW: Can unlock status from API
   className?: string;
-  onSuccess?: () => void; // Callback για refresh
+  onSuccess?: () => void;
 }
 
 const UnlockButton: React.FC<UnlockButtonProps> = ({
@@ -18,6 +20,8 @@ const UnlockButton: React.FC<UnlockButtonProps> = ({
   name,
   cost,
   isUnlockedByDefault = false,
+  isUnlocked,                  // ✅ NEW: Use this instead of hook
+  canUnlock,                   // ✅ NEW: Use this instead of calculating
   className = '',
   onSuccess
 }) => {
@@ -26,8 +30,6 @@ const UnlockButton: React.FC<UnlockButtonProps> = ({
     userProgress, 
     unlockChampion, 
     unlockSkin, 
-    isChampionUnlocked, 
-    isSkinUnlocked, 
     canAfford,
     loading 
   } = useUnlock();
@@ -56,12 +58,10 @@ const UnlockButton: React.FC<UnlockButtonProps> = ({
     );
   }
 
-  // Check αν είναι ήδη unlocked
-  const isUnlocked = type === 'champion' 
-    ? isChampionUnlocked(id) 
-    : isSkinUnlocked(id);
+  // ✅ UPDATED: Use the new props instead of hooks
+  const isAlreadyUnlocked = isUnlocked || isUnlockedByDefault;
 
-  if (isUnlocked) {
+  if (isAlreadyUnlocked) {
     return (
       <div className={`badge badge-success ${className}`}>
         ✓ Unlocked
@@ -69,8 +69,8 @@ const UnlockButton: React.FC<UnlockButtonProps> = ({
     );
   }
 
-  // Check αν μπορεί να το αγοράσει
-  const canBuy = canAfford(cost);
+  // ✅ UPDATED: Use canUnlock prop from API + local canAfford check
+  const canBuy = canUnlock && canAfford(cost);
   
   const handleUnlock = async () => {
     setUnlocking(true);
@@ -129,9 +129,10 @@ const UnlockButton: React.FC<UnlockButtonProps> = ({
       )}
       
       {/* Cannot afford message */}
-      {!canBuy && !isUnlocked && (
+      {!canBuy && !isAlreadyUnlocked && (
         <div className="text-xs text-red-500 text-center">
-          Need {cost - (userProgress?.points || 0)} more points
+          {!canUnlock ? 'Cannot unlock this item' : 
+           `Need ${cost - (userProgress?.points || 0)} more points`}
         </div>
       )}
     </div>
