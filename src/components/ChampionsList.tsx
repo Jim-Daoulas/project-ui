@@ -9,12 +9,14 @@ interface ChampionsListProps {
   showFilters?: boolean;
   showTitle?: boolean;
   limit?: number;
+  guestMode?: boolean;  // ✅ Νέο prop
 }
 
-const ChampionsList = ({
-  showFilters = true,
-  showTitle = true,
-  limit
+const ChampionsList = ({ 
+  showFilters = true, 
+  showTitle = true, 
+  limit,
+  guestMode = false  // ✅ Default false
 }: ChampionsListProps) => {
   const { user } = useAuth();
   const [champions, setChampions] = useState<Champion[]>([]);
@@ -23,6 +25,7 @@ const ChampionsList = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
+  const endpoint = guestMode ? '/champions/public' : '/champions/champions';
 
   // Fetch champions from API
   useEffect(() => {

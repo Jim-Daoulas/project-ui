@@ -5,6 +5,8 @@ export type User = {
     email: string;
     name: string;
     points: number; // Προσθήκη points
+    unlocked_champions_count?: number; // ✅ ΝΕΟ
+  unlocked_skins_count?: number;
     created_at: string;
     updated_at: string;
 }
