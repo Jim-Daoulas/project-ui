@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 import { useAuth } from '../context/AuthContext';
 import ChampionInfo from '../components/ChampionsInformation';
@@ -8,6 +7,7 @@ import SkinsGallery from '../components/SkinsGallery';
 import { Champion } from '../types/champions';
 import { BaseResponse } from '../types/helpers';
 import ChampionRework from '../components/ChampionRework';
+import { Link, useParams } from 'react-router';
 
 // Types based on your structure
 interface ChampionResponse extends BaseResponse<Champion> {}
@@ -15,7 +15,6 @@ interface ChampionResponse extends BaseResponse<Champion> {}
 const ChampionDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [champion, setChampion] = useState<Champion | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
