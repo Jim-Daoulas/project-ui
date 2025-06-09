@@ -28,20 +28,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
     if (token) {
-        // ✅ ΠΡΟΣΘΕΣΕ ΑΥΤΟ: Στείλε το token σε κάθε request
-        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
         axiosInstance.get("/users/user/me")
-        .then((response) => {
-            console.log("Raw user data response:", response);
-            // ... rest of your code
-        })
-        .catch(error => {
-            console.error("Error fetching user data:", error);
-        });
-    } else {
-        // ✅ ΠΡΟΣΘΕΣΕ ΑΥΤΟ: Αφαίρεσε το header αν δεν υπάρχει token
-        delete axiosInstance.defaults.headers.common['Authorization'];
+            .then((response) => {
+                console.log("Raw user data response:", response);
+                console.log("User data response:", response.data);
+                
+                // ✅ ΣΩΣΤΗ ΔΟΜΗ: response.data.data (χωρίς .user)
+                if (response.data && response.data.success && response.data.data) {
+                    console.log("Setting user:", response.data.data);
+                    setUser(response.data.data);
+                } else {
+                    console.error("Unexpected user response format:", response.data);
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching user data:", error);
+                // Αν το token είναι invalid, καθάρισε το
+                if (error.response?.status === 401) {
+                    setToken(null);
+                    localStorage.removeItem("token");
+                }
+            });
     }
 }, [token]);
 
