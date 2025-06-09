@@ -221,7 +221,7 @@ useEffect(() => {
           <p className="text-gray-400">Try adjusting your search or filters</p>
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
           {/* Rest of your champion cards remain the same */}
           {filteredChampions.map(champion => (
             <div

@@ -23,14 +23,7 @@ const Champions = () => {
         </div>
 
         {/* Preview Champions - μόνο 3 unlocked */}
-        <div className="pb-16">
-          <h3 className="text-3xl font-bold text-white text-center mb-8">
-            Preview Champions
-          </h3>
-          <p className="text-center text-gray-400 mb-8">
-            Sign up to unlock all champions and their reworks!
-          </p>
-          
+        <div className="pb-16">         
           <ChampionsList 
             showFilters={false}
             showTitle={false}
