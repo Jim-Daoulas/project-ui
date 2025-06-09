@@ -45,7 +45,6 @@ const Champions = () => {
           <ChampionsList 
             showFilters={false}
             showTitle={false}
-            limit={6}
           />
           
           {/* Unlock More CTA */}

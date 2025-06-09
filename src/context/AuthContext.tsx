@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { LoginResponse, User } from "../types/user";
+import { User } from "../types/user";
 import axiosInstance from "../api/axiosInstance";
 import { ReactNode } from 'react';
 
@@ -8,8 +8,8 @@ const AuthContext = createContext<{
     user: User | undefined,
     token: string | null,
     loading: boolean, // ✅ ΝΕΟ
-    login: (credentials: {email: string; password: string}) => Promise<any>,
-    register: (userData: {name: string; email: string; password: string}) => Promise<any>,
+    login: (credentials: { email: string; password: string }) => Promise<any>,
+    register: (userData: { name: string; email: string; password: string }) => Promise<any>,
     logout: () => Promise<void>
 }>({
     user: undefined,
@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 .then((response) => {
                     console.log("Raw user data response:", response);
                     console.log("User data response:", response.data);
-                    
+
                     // Έλεγξε αν υπάρχουν δεδομένα χρήστη σε οποιαδήποτε μορφή
                     if (response.data && response.data.data && response.data.data.user) {
                         // Αν έχει την προβλεπόμενη δομή
@@ -65,20 +65,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [token]);
 
-    const login = ({ email, password }: { email: string; password: string }) => {
-        setLoading(true); // ✅ Ξεκίνα loading για login
-        return axiosInstance.post<LoginResponse>("/users/auth/login", { email, password })
-            .then(response => {
-                console.log("Login response:", response.data);
-                const data = response.data.data;
-                setUser(data.user);
-                setToken(data.token);
-                localStorage.setItem("token", data.token);
-                return data;
-            })
-            .finally(() => {
-                setLoading(false); // ✅ Τέλος loading
+    const login = async ({ email, password }: {email: string; password: string }) => {
+        try {
+            const response = await axiosInstance.post('/users/auth/login', {
+                email,
+                password,
             });
+
+            console.log('Login response:', response.data); // DEBUG
+
+            if (response.data.success) {
+                const { user, token } = response.data.data;
+
+                // Αποθήκευση
+                localStorage.setItem('token', token);
+                localStorage.setItem('user', JSON.stringify(user));
+
+                // Update state
+                setUser(user);
+                setToken(token);
+
+                return { success: true };
+            }
+        } catch (error: any) {
+            console.error('Login error:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Login failed'
+            };
+        }
     };
 
     const register = ({ name, email, password }: { name: string; email: string; password: string }) => {
@@ -96,7 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setLoading(false); // ✅ Τέλος loading
             });
     };
-    
+
     const logout = (): Promise<void> => {
         setLoading(true); // ✅ Ξεκίνα loading για logout
         return axiosInstance.post("/users/auth/logout")

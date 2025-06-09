@@ -25,35 +25,49 @@ const ChampionsList = ({
   const [unlockingChampion, setUnlockingChampion] = useState<number | null>(null);
 
   // Fetch champions from API
-  useEffect(() => {
-    const fetchChampions = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
-        console.log('API Response:', response.data);
-        
-        if (response.data.success && Array.isArray(response.data.data)) {
-          setChampions(response.data.data);
-          console.log('Champions loaded:', response.data.data);
-        } else if (Array.isArray(response.data)) {
-          // Fallback if data is directly an array
-          setChampions(response.data);
-          console.log('Champions loaded (fallback):', response.data);
-        } else {
-          console.error('Unexpected data format:', response.data);
-          setError('Failed to fetch champions - unexpected data format');
-        }
-      } catch (err) {
-        setError('Error fetching champions');
-        console.error('Error fetching champions:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+ // Στο ChampionsList.tsx, αντικατέστησε το useEffect με αυτό:
 
-    fetchChampions();
-  }, []);
+useEffect(() => {
+  const fetchChampions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axiosInstance.get<ChampionsResponse>('/champions');
+      console.log('API Response:', response.data);
+      
+      if (response.data.success && Array.isArray(response.data.data)) {
+        setChampions(response.data.data);
+        console.log('Champions loaded:', response.data.data);
+        
+        // ✅ DEBUG LOGS:
+        console.log('Champions count:', response.data.data.length);
+        console.log('Locked champions:', response.data.data.filter(c => c.is_locked));
+        console.log('Unlocked champions:', response.data.data.filter(c => !c.is_locked));
+        
+      } else if (Array.isArray(response.data)) {
+        // Fallback if data is directly an array
+        setChampions(response.data);
+        console.log('Champions loaded (fallback):', response.data);
+        
+        // ✅ DEBUG LOGS για fallback:
+        console.log('Champions count (fallback):', response.data.length);
+        console.log('Locked champions (fallback):', response.data.filter(c => c.is_locked));
+        console.log('Unlocked champions (fallback):', response.data.filter(c => !c.is_locked));
+        
+      } else {
+        console.error('Unexpected data format:', response.data);
+        setError('Failed to fetch champions - unexpected data format');
+      }
+    } catch (err) {
+      setError('Error fetching champions');
+      console.error('Error fetching champions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchChampions();
+}, []);
 
   // Handle champion unlock
   const handleUnlockChampion = async (championId: number, championName: string) => {
