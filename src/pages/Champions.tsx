@@ -22,15 +22,6 @@ const Champions = () => {
             Discover reimagined champions with fresh abilities, updated lore, and exciting gameplay mechanics.
           </p>
           
-          {/* Call to Action */}
-          <div className="space-x-4">
-            <Link to="/register" className="btn btn-primary btn-lg">
-              Sign Up Free
-            </Link>
-            <Link to="/login" className="btn btn-outline btn-lg">
-              Login
-            </Link>
-          </div>
         </div>
 
         {/* Preview Champions - μόνο 3 unlocked */}
@@ -47,21 +38,6 @@ const Champions = () => {
             showTitle={false}
           />
           
-          {/* Unlock More CTA */}
-          <div className="text-center mt-12">
-            <div className="bg-black/30 rounded-lg p-8 max-w-md mx-auto">
-              <div className="text-4xl mb-4">🔓</div>
-              <h4 className="text-xl font-bold text-white mb-2">
-                Unlock All Champions
-              </h4>
-              <p className="text-gray-300 mb-4">
-                Get access to all reworked champions and their abilities
-              </p>
-              <Link to="/register" className="btn btn-primary">
-                Join Now - It's Free!
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     );
