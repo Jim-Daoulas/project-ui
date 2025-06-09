@@ -46,7 +46,6 @@ const Champions = () => {
             showFilters={false}
             showTitle={false}
             limit={6}
-            guestMode={true}
           />
           
           {/* Unlock More CTA */}
@@ -94,7 +93,6 @@ const Champions = () => {
       <ChampionsList 
         showFilters={true}
         showTitle={false}
-        guestMode={false}
       />
     </div>
   );

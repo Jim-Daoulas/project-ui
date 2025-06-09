@@ -12,14 +12,8 @@ export type Champion = {
   description: string;
   image_url: string | null;
   stats?: Record<string, any> | null;
-  // Unlock properties
-  unlock_cost: number;
-  is_unlocked_by_default: boolean;
-  is_unlocked?: boolean;
-  can_unlock?: boolean;
-  user_has_unlocked?: boolean;
-  user_can_unlock?: boolean;
-  // Relations
+  is_default_unlocked?: boolean;
+  is_locked?: boolean;
   abilities?: Ability[];
   skins?: Skin[];
   rework?: Rework | null;
@@ -27,4 +21,6 @@ export type Champion = {
   updated_at?: string;
 }
 
-export type ChampionsResponse = BaseResponse<Champion[]>;
+export type ChampionsResponse = BaseResponse<{
+    champions: Champion[];
+}>;

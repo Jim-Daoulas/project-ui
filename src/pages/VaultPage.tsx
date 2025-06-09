@@ -67,7 +67,6 @@ const VaultPage = () => {
       <ChampionsList 
         showFilters={true}
         showTitle={false}
-        guestMode={false}
       />
     </div>
   );
