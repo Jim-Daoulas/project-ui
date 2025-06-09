@@ -17,7 +17,6 @@ interface UnlockButtonProps {
 const UnlockButton: React.FC<UnlockButtonProps> = ({
   type,
   id,
-  name,
   cost,
   isUnlockedByDefault = false,
   isUnlocked,                  // ✅ NEW: Use this instead of hook
