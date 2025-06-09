@@ -9,14 +9,14 @@ interface ChampionsListProps {
   showFilters?: boolean;
   showTitle?: boolean;
   limit?: number;
-  guestMode?: boolean;  // ✅ Νέο prop
+  guestMode?: boolean;
 }
 
 const ChampionsList = ({ 
   showFilters = true, 
   showTitle = true, 
   limit,
-  guestMode = false  // ✅ Default false
+  guestMode = false
 }: ChampionsListProps) => {
   const { user } = useAuth();
   const [champions, setChampions] = useState<Champion[]>([]);
@@ -25,7 +25,10 @@ const ChampionsList = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
-  const endpoint = guestMode ? '/champions/public' : '/champions/champions';
+
+  // ✅ ΑΦΑΙΡΕΣΗ των προβληματικών γραμμών:
+  // const endpoint = guestMode ? '/champions/public' : '/champions/champions';
+  // const response = await axiosInstance.get<ChampionsResponse>(endpoint);
 
   // Fetch champions from API
   useEffect(() => {
@@ -33,9 +36,13 @@ const ChampionsList = ({
       try {
         setLoading(true);
         setError(null);
-        const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
+        
+        // ✅ Χρησιμοποίησε το dynamic endpoint
+        const endpoint = guestMode ? '/champions/public' : '/champions/champions';
+        const response = await axiosInstance.get<ChampionsResponse>(endpoint);
+        
         console.log('API Response:', response.data);
-
+        
         if (response.data.success && Array.isArray(response.data.data)) {
           setChampions(response.data.data);
           console.log('Champions loaded:', response.data.data);
@@ -55,7 +62,7 @@ const ChampionsList = ({
     };
 
     fetchChampions();
-  }, [user]);
+  }, [user, guestMode]);
 
   // Filter champions based on search and filters
   const filteredChampions = (champions || []).filter(champion => {
@@ -77,7 +84,9 @@ const ChampionsList = ({
   const handleUnlockSuccess = () => {
     const fetchChampions = async () => {
       try {
-        const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
+        // ✅ Χρησιμοποίησε το σωστό endpoint και εδώ
+        const endpoint = guestMode ? '/champions/public' : '/champions/champions';
+        const response = await axiosInstance.get<ChampionsResponse>(endpoint);
         if (response.data.success && Array.isArray(response.data.data)) {
           setChampions(response.data.data);
         }
@@ -92,14 +101,14 @@ const ChampionsList = ({
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <span className="loading loading-spinner loading-lg"></span>
-        <span className="ml-4 text-lg">Loading champions...</span>
+        <span className="ml-4 text-lg text-white">Loading champions...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="alert alert-error">
+      <div className="alert alert-error max-w-md mx-auto">
         <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -113,8 +122,8 @@ const ChampionsList = ({
       {/* Title */}
       {showTitle && (
         <div className="mb-8 pt-8 px-8">
-          <h1 className="text-4xl font-bold mb-4 text-gray-800">League of Legends Rework Vault</h1>
-          <p className="text-lg text-gray-500">
+          <h1 className="text-4xl font-bold mb-4 text-white">League of Legends Rework Vault</h1>
+          <p className="text-lg text-gray-300">
             Explore all League of Legends champions and their rework proposals
           </p>
         </div>
@@ -126,12 +135,12 @@ const ChampionsList = ({
           {/* Search */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-gray-500">Search Champions</span>
+              <span className="label-text text-gray-300">Search Champions</span>
             </label>
             <input
               type="text"
               placeholder="Search by name or title..."
-              className="input input-bordered w-full text-gray-600 border-gray-600"
+              className="input input-bordered w-full text-white bg-black/20 border-gray-600"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -140,10 +149,10 @@ const ChampionsList = ({
           {/* Role Filter */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-white">Filter by Role</span>
+              <span className="label-text text-gray-300">Filter by Role</span>
             </label>
             <select
-              className="select select-bordered w-full text-gray-500 border-gray-600"
+              className="select select-bordered w-full text-white bg-black/20 border-gray-600"
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
             >
@@ -157,10 +166,10 @@ const ChampionsList = ({
           {/* Region Filter */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-white">Filter by Region</span>
+              <span className="label-text text-gray-300">Filter by Region</span>
             </label>
             <select
-              className="select select-bordered w-full text-gray-500 border-gray-600"
+              className="select select-bordered w-full text-white bg-black/20 border-gray-600"
               value={selectedRegion}
               onChange={(e) => setSelectedRegion(e.target.value)}
             >
@@ -174,9 +183,11 @@ const ChampionsList = ({
       )}
 
       {/* Results Count */}
-      <div className="mb-6 px-8 text-sm text-gray-400">
-        Showing {filteredChampions.length} of {champions.length} champions
-      </div>
+      {showFilters && (
+        <div className="mb-6 px-8 text-sm text-gray-400">
+          Showing {filteredChampions.length} of {champions.length} champions
+        </div>
+      )}
 
       {/* Champions Grid */}
       {filteredChampions.length === 0 ? (
@@ -192,22 +203,33 @@ const ChampionsList = ({
               key={champion.id}
               className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
             >
-              {/* ✅ ΔΙΟΡΘΩΣΗ: Χρήση user_has_unlocked αντί για is_unlocked */}
+              {/* Lock Overlay για locked champions */}
               {!champion.user_has_unlocked && (
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
                   <div className="text-4xl mb-2">🔒</div>
                   <div className="text-white text-center px-4">
-                    <p className="text-sm font-semibold mb-2">Locked Champion</p>
-                    <p className="text-xs mb-3 opacity-75">Cost: {champion.unlock_cost} points</p>
-                    <UnlockButton
-                      type="champion"
-                      id={champion.id}
-                      name={champion.name}
-                      cost={champion.unlock_cost}
-                      canUnlock={champion.user_can_unlock}  // ✅ canUnlock αντί για userCanUnlock
-                      className="btn-sm"
-                      onSuccess={handleUnlockSuccess}
-                    />
+                    <p className="text-sm font-semibold mb-2">
+                      {guestMode ? 'Sign up to unlock' : 'Locked Champion'}
+                    </p>
+                    {!guestMode && (
+                      <>
+                        <p className="text-xs mb-3 opacity-75">Cost: {champion.unlock_cost} points</p>
+                        <UnlockButton
+                          type="champion"
+                          id={champion.id}
+                          name={champion.name}
+                          cost={champion.unlock_cost}
+                          canUnlock={champion.user_can_unlock}
+                          className="btn-sm"
+                          onSuccess={handleUnlockSuccess}
+                        />
+                      </>
+                    )}
+                    {guestMode && (
+                      <Link to="/register" className="btn btn-primary btn-sm">
+                        Join Free
+                      </Link>
+                    )}
                   </div>
                 </div>
               )}
@@ -216,22 +238,23 @@ const ChampionsList = ({
               <img
                 src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
                 alt={champion.name}
-                className={`absolute inset-0 w-full h-full object-cover transition-all duration-300 ${!champion.user_has_unlocked ? 'grayscale blur-sm' : ''
-                  }`}
+                className={`absolute inset-0 w-full h-full object-cover transition-all duration-300 ${
+                  !champion.user_has_unlocked ? 'grayscale blur-sm' : ''
+                }`}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = `https://via.placeholder.com/400x500/667eea/ffff?text=${champion.name.charAt(0)}`;
+                  target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
                 }}
               />
-
-              {/* ✅ ΔΙΟΡΘΩΣΗ: Link μόνο αν είναι unlocked */}
+              
+              {/* Link to champion detail - μόνο αν είναι unlocked */}
               {champion.user_has_unlocked && (
-                <Link
+                <Link 
                   to={`/champions/${champion.id}`}
                   className="absolute inset-0 z-5"
                 />
               )}
-
+              
               {/* Bottom bar with champion name */}
               <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3 z-5">
                 <div className="flex items-center justify-between">
