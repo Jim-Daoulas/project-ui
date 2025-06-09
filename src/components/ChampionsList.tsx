@@ -139,7 +139,7 @@ useEffect(() => {
   }
 
   return (
-    <div className="w-full min-h-screen">
+    <div className="w-full">
       {/* Title */}
       {showTitle && (
         <div className="mb-8 pt-8 px-8">
@@ -157,16 +157,16 @@ useEffect(() => {
 
       {/* Filters */}
       {showFilters && (
-        <div className="mb-8 px-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mb-8 max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-gray-500">Search Champions</span>
+              <span className="label-text text-gray-300">Search Champions</span>
             </label>
             <input
               type="text"
               placeholder="Search by name or title..."
-              className="input input-bordered w-full text-gray-600 border-gray-600"
+              className="input input-bordered w-full bg-gray-700 text-white border-gray-600"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -175,10 +175,10 @@ useEffect(() => {
           {/* Role Filter */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-white">Filter by Role</span>
+              <span className="label-text text-gray-300">Filter by Role</span>
             </label>
             <select
-              className="select select-bordered w-full text-gray-500 border-gray-600"
+              className="select select-bordered w-full bg-gray-700 text-white border-gray-600"
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
             >
@@ -192,10 +192,10 @@ useEffect(() => {
           {/* Region Filter */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-white">Filter by Region</span>
+              <span className="label-text text-gray-300">Filter by Region</span>
             </label>
             <select
-              className="select select-bordered w-full text-gray-500 border-gray-600"
+              className="select select-bordered w-full bg-gray-700 text-white border-gray-600"
               value={selectedRegion}
               onChange={(e) => setSelectedRegion(e.target.value)}
             >
@@ -209,7 +209,7 @@ useEffect(() => {
       )}
 
       {/* Results Count */}
-      <div className="mb-6 px-8 text-sm text-gray-400">
+      <div className="mb-6 max-w-6xl mx-auto px-6 text-sm text-gray-400">
         Showing {filteredChampions.length} of {champions.length} champions
       </div>
 
@@ -221,13 +221,14 @@ useEffect(() => {
           <p className="text-gray-400">Try adjusting your search or filters</p>
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto px-6 pb-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {/* Rest of your champion cards remain the same */}
           {filteredChampions.map(champion => (
             <div
               key={champion.id}
               className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
             >
-              {/* Background Image */}
+              {/* Your existing card content */}
               <img
                 src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
                 alt={champion.name}

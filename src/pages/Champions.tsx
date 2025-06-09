@@ -20,17 +20,22 @@ const Champions = () => {
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
             Discover reimagined champions with fresh abilities, updated lore, and exciting gameplay mechanics.
           </p>
-          
         </div>
+
+        {/* Preview Champions - μόνο 3 unlocked */}
+        <div className="pb-16">
+          <h3 className="text-3xl font-bold text-white text-center mb-8">
+            Preview Champions
+          </h3>
+          <p className="text-center text-gray-400 mb-8">
+            Sign up to unlock all champions and their reworks!
+          </p>
           
-        <div>
-            <ChampionsList 
+          <ChampionsList 
             showFilters={false}
             showTitle={false}
           />
-          
         </div>
-        
       </div>
     );
   }
@@ -57,15 +62,12 @@ const Champions = () => {
       </div>
 
       {/* Champions List - με unlock system */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-    <ChampionsList 
-        showFilters={true}
-        showTitle={false}
-      />
-  </div>
-</div>
-      
+      <div className="pb-8">
+        <ChampionsList 
+          showFilters={true}
+          showTitle={false}
+        />
+      </div>
     </div>
   );
 };
