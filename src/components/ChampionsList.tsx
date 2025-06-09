@@ -25,7 +25,6 @@ const ChampionsList = ({
   const [unlockingChampion, setUnlockingChampion] = useState<number | null>(null);
 
   // Fetch champions from API
- // Στο ChampionsList.tsx, αντικατέστησε το useEffect με αυτό:
 
 useEffect(() => {
   const fetchChampions = async () => {
@@ -222,7 +221,7 @@ useEffect(() => {
           <p className="text-gray-400">Try adjusting your search or filters</p>
         </div>
       ) : (
-        <div className="px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="max-w-6xl mx-auto px-6 pb-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {filteredChampions.map(champion => (
             <div
               key={champion.id}

@@ -1,5 +1,4 @@
 // pages/Champions.tsx
-import { Link } from 'react-router-dom';
 import ChampionsList from '../components/ChampionsList';
 import { useAuth } from '../context/AuthContext';
 
@@ -23,22 +22,15 @@ const Champions = () => {
           </p>
           
         </div>
-
-        {/* Preview Champions - μόνο 3 unlocked */}
-        <div className="px-8 pb-16">
-          <h3 className="text-3xl font-bold text-white text-center mb-8">
-            Preview Champions
-          </h3>
-          <p className="text-center text-gray-400 mb-8">
-            Sign up to unlock all champions and their reworks!
-          </p>
           
-          <ChampionsList 
+        <div>
+            <ChampionsList 
             showFilters={false}
             showTitle={false}
           />
           
         </div>
+        
       </div>
     );
   }
@@ -65,10 +57,15 @@ const Champions = () => {
       </div>
 
       {/* Champions List - με unlock system */}
-      <ChampionsList 
+      <div className="max-w-7xl mx-auto px-4 py-8">
+  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <ChampionsList 
         showFilters={true}
         showTitle={false}
       />
+  </div>
+</div>
+      
     </div>
   );
 };
