@@ -1,255 +1,129 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function Register() {
-    const { register } = useAuth();
-    const navigate = useNavigate();
+    const { register, loading, error } = useAuth();
 
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [error, setError] = useState("");
-    const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
-    const [loading, setLoading] = useState(false);
+    const [localError, setLocalError] = useState("");
 
-    // Helper function to get first error for a field
-    const getFieldError = (field: string): string => {
-        return validationErrors[field]?.[0] || "";
-    };
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        setLocalError("");
 
-    // Client-side validation that matches Laravel rules
-    const validateForm = (): boolean => {
-        const errors: Record<string, string[]> = {};
-
-        // Name validation - matches Laravel 'required|string'
-        if (!name || !name.trim()) {
-            errors.name = ["The name field is required."];
-        }
-
-        // Email validation - matches Laravel 'required|string|unique:users,email'
-        if (!email || !email.trim()) {
-            errors.email = ["The email field is required."];
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            errors.email = ["The email must be a valid email address."];
-        }
-
-        // Password validation - matches Laravel 'required|string|min:6'
-        if (!password) {
-            errors.password = ["The password field is required."];
-        } else if (password.length < 6) {
-            errors.password = ["The password must be at least 6 characters."];
-        }
-
-        // Confirm password - custom validation (not in API)
-        if (!confirmPassword) {
-            errors.confirmPassword = ["Please confirm your password."];
-        } else if (password !== confirmPassword) {
-            errors.confirmPassword = ["Passwords do not match."];
-        }
-
-        setValidationErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-
-    const handleRegister = async () => {
-        // Reset errors
-        setError("");
-        setValidationErrors({});
-
-        // Basic client-side validation
-        if (!validateForm()) {
+        if (password !== confirmPassword) {
+            setLocalError("Passwords do not match");
             return;
         }
 
         try {
-            setLoading(true);
-            console.log('Sending registration data:', { name, email, password });
-            
-            // Use the register method from AuthContext
             await register({ name, email, password });
-            // Navigate to home on successful registration
-            navigate("/");
-        } catch (error: any) {
+        } catch (error) {
             console.error("Registration failed:", error);
-            
-            // Handle Laravel validation errors
-            if (error.response?.status === 422) {
-                // Laravel validation errors format: { "errors": { "email": ["The email has already been taken."] } }
-                const serverErrors = error.response.data.errors || {};
-                setValidationErrors(serverErrors);
-                
-                // Show general error message
-                const errorMessages = Object.values(serverErrors).flat() as string[];
-                setError(errorMessages.length > 1 ? "Please fix the errors below." : errorMessages[0] || "");
-                
-            } else if (error.response?.data?.message) {
-                // Other server errors
-                setError(error.response.data.message);
-            } else {
-                // Network or other errors
-                setError("Registration failed. Please try again.");
-            }
-        } finally {
-            setLoading(false);
         }
     };
 
     return (
-        <div className="flex justify-center vh-100 items-center">
-            <form 
-                onSubmit={(ev) => {
-                    ev.preventDefault();
-                    handleRegister();
-                }} 
-                className="flex flex-col gap-3 w-[350px] p-4 ring-1 ring-gray-500 rounded-lg"
-            >
-                <h1 className="text-xl font-bold text-center mb-4">Register</h1>
-                
-                {error && (
-                    <div className="alert alert-error">
-                        <span>{error}</span>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-gray-900 to-gray-800">
+            <div className="max-w-md w-full mx-4">
+                <div className="bg-gray-800 rounded-lg shadow-2xl p-8">
+                    <div className="text-center mb-8">
+                        <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
+                        <p className="text-gray-400">Join the League of Legends community</p>
                     </div>
-                )}
-                
-                {/* Name Field */}
-                <div className="form-control">
-                    <label className="input input-bordered flex items-center gap-2">
-                        <input 
-                            type="text" 
-                            className="grow" 
-                            placeholder="Full Name" 
-                            value={name}
-                            onChange={(ev) => {
-                                setName(ev.target.value);
-                                // Clear field error on change
-                                if (validationErrors.name) {
-                                    setValidationErrors(prev => {
-                                        const newErrors = { ...prev };
-                                        delete newErrors.name;
-                                        return newErrors;
-                                    });
-                                }
-                            }}
-                            required
-                        />
-                    </label>
-                    {getFieldError('name') && (
-                        <div className="text-error text-sm mt-1">
-                            {getFieldError('name')}
-                        </div>
-                    )}
-                </div>
-                
-                {/* Email Field */}
-                <div className="form-control">
-                    <label className="input input-bordered flex items-center gap-2">
-                        <input 
-                            type="email" 
-                            className="grow" 
-                            placeholder="Email Address" 
-                            value={email}
-                            onChange={(ev) => {
-                                setEmail(ev.target.value);
-                                // Clear field error on change
-                                if (validationErrors.email) {
-                                    setValidationErrors(prev => {
-                                        const newErrors = { ...prev };
-                                        delete newErrors.email;
-                                        return newErrors;
-                                    });
-                                }
-                            }}
-                            required
-                        />
-                    </label>
-                    {getFieldError('email') && (
-                        <div className="text-error text-sm mt-1">
-                            {getFieldError('email')}
-                        </div>
-                    )}
-                </div>
-                
-                {/* Password Field */}
-                <div className="form-control">
-                    <label className="input input-bordered flex items-center gap-2">
-                        <input 
-                            type="password" 
-                            className="grow" 
-                            placeholder="Password (min 6 chars)"
-                            value={password}
-                            onChange={(ev) => {
-                                setPassword(ev.target.value);
-                                // Clear field error on change
-                                if (validationErrors.password) {
-                                    setValidationErrors(prev => {
-                                        const newErrors = { ...prev };
-                                        delete newErrors.password;
-                                        return newErrors;
-                                    });
-                                }
-                            }}
-                            required
-                            minLength={6}
-                        />
-                    </label>
-                    {getFieldError('password') && (
-                        <div className="text-error text-sm mt-1">
-                            {getFieldError('password')}
-                        </div>
-                    )}
-                </div>
-                
-                {/* Confirm Password Field */}
-                <div className="form-control">
-                    <label className="input input-bordered flex items-center gap-2">
-                        <input 
-                            type="password" 
-                            className="grow" 
-                            placeholder="Confirm Password"
-                            value={confirmPassword}
-                            onChange={(ev) => {
-                                setConfirmPassword(ev.target.value);
-                                // Clear field error on change
-                                if (validationErrors.confirmPassword) {
-                                    setValidationErrors(prev => {
-                                        const newErrors = { ...prev };
-                                        delete newErrors.confirmPassword;
-                                        return newErrors;
-                                    });
-                                }
-                            }}
-                            required
-                        />
-                    </label>
-                    {getFieldError('confirmPassword') && (
-                        <div className="text-error text-sm mt-1">
-                            {getFieldError('confirmPassword')}
-                        </div>
-                    )}
-                </div>
-                
-                <button 
-                    type="submit" 
-                    className={`btn btn-primary ${loading ? 'loading' : ''}`}
-                    disabled={loading}
-                >
-                    {loading ? 'Creating Account...' : 'Register'}
-                </button>
 
-                {/* Login Link */}
-                <div className="text-center mt-4">
-                    <span className="text-sm">Already have an account? </span>
-                    <button
-                        type="button"
-                        onClick={() => navigate('/login')}
-                        className="text-primary hover:underline text-sm"
-                    >
-                        Login here
-                    </button>
+                    <form onSubmit={handleRegister} className="space-y-6">
+                        {(error || localError) && (
+                            <div className="alert alert-error">
+                                <span>{error || localError}</span>
+                            </div>
+                        )}
+
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text text-gray-300">Name</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                className="input input-bordered w-full bg-gray-700 text-white border-gray-600 focus:border-purple-500" 
+                                placeholder="Enter your name" 
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                                disabled={loading}
+                            />
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text text-gray-300">Email</span>
+                            </label>
+                            <input 
+                                type="email" 
+                                className="input input-bordered w-full bg-gray-700 text-white border-gray-600 focus:border-purple-500" 
+                                placeholder="Enter your email" 
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                disabled={loading}
+                            />
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text text-gray-300">Password</span>
+                            </label>
+                            <input 
+                                type="password" 
+                                className="input input-bordered w-full bg-gray-700 text-white border-gray-600 focus:border-purple-500" 
+                                placeholder="Enter your password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                minLength={6}
+                                disabled={loading}
+                            />
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text text-gray-300">Confirm Password</span>
+                            </label>
+                            <input 
+                                type="password" 
+                                className="input input-bordered w-full bg-gray-700 text-white border-gray-600 focus:border-purple-500" 
+                                placeholder="Confirm your password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                                disabled={loading}
+                            />
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            className={`btn btn-primary w-full ${loading ? 'loading' : ''}`}
+                            disabled={loading}
+                        >
+                            {loading ? 'Creating Account...' : 'Create Account'}
+                        </button>
+                    </form>
+
+                    <div className="text-center mt-6">
+                        <p className="text-gray-400">
+                            Already have an account?{' '}
+                            <Link to="/login" className="text-purple-400 hover:text-purple-300 font-medium">
+                                Sign in
+                            </Link>
+                        </p>
+                    </div>
                 </div>
-            </form>
+            </div>
         </div>
     );
 }

@@ -1,139 +1,150 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { User } from "../types/user";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { LoginResponse, User } from "../types/user";
 import axiosInstance from "../api/axiosInstance";
-import { ReactNode } from 'react';
+import { useNavigate } from "react-router-dom";
 
-// ✅ Προσθήκη loading στο context type
 const AuthContext = createContext<{
     user: User | undefined,
     token: string | null,
-    loading: boolean, // ✅ ΝΕΟ
-    login: (credentials: { email: string; password: string }) => Promise<any>,
-    register: (userData: { name: string; email: string; password: string }) => Promise<any>,
-    logout: () => Promise<void>
+    login: (credentials: {email: string; password: string}) => Promise<any>,
+    register: (userData: {name: string; email: string; password: string}) => Promise<any>,
+    logout: () => Promise<void>,
+    loading: boolean,
+    error: string
 }>({
     user: undefined,
     token: null,
-    loading: true, // ✅ ΝΕΟ
     login: () => Promise.resolve(),
     register: () => Promise.resolve(),
     logout: () => Promise.resolve(),
+    loading: true,
+    error: ""
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-
-    const [user, setUser] = useState<User>();
+    const [user, setUser] = useState<User | undefined>(undefined);
     const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
-    const [loading, setLoading] = useState<boolean>(true); // ✅ ΝΕΟ
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    
+    const navigate = useNavigate();
 
     useEffect(() => {
-        if (token) {
-            setLoading(true); // ✅ Ξεκίνα loading
-            axiosInstance.get("/users/user/me")
-                .then((response) => {
-                    console.log("Raw user data response:", response);
-                    console.log("User data response:", response.data);
-
-                    // Έλεγξε αν υπάρχουν δεδομένα χρήστη σε οποιαδήποτε μορφή
-                    if (response.data && response.data.data && response.data.data.user) {
-                        // Αν έχει την προβλεπόμενη δομή
+        const initializeAuth = async () => {
+            if (token) {
+                try {
+                    console.log("Checking authentication...");
+                    // Χρησιμοποιούμε το σωστό endpoint από το Laravel project σου
+                    const response = await axiosInstance.get("/users/user/me");
+                    console.log("Auth response:", response.data);
+                    
+                    if (response.data && response.data.success && response.data.data && response.data.data.user) {
                         setUser(response.data.data.user);
-                    } else if (response.data && response.data.user) {
-                        // Άλλη πιθανή δομή
-                        setUser(response.data.user);
-                    } else if (response.data && response.data.data) {
-                        // Ίσως ο χρήστης είναι άμεσα στο data
-                        setUser(response.data.data);
-                    } else if (response.data) {
-                        // Ή απλά η απάντηση είναι ο χρήστης
-                        setUser(response.data);
+                        console.log("User authenticated:", response.data.data.user);
                     } else {
-                        console.error("Unexpected user response format:", response.data);
+                        console.log("Invalid auth response, clearing token");
+                        localStorage.removeItem("token");
+                        setToken(null);
                     }
-                })
-                .catch(error => {
-                    console.error("Error fetching user data:", error);
-                    // ✅ Αν αποτύχει το API call, αφαίρεσε το token
-                    setToken(null);
+                } catch (error) {
+                    console.error("Auth check failed:", error);
                     localStorage.removeItem("token");
-                })
-                .finally(() => {
-                    setLoading(false); // ✅ Τέλος loading
-                });
-        } else {
-            setLoading(false); // ✅ Δεν υπάρχει token, δεν χρειάζεται loading
-        }
+                    setToken(null);
+                }
+            }
+            setLoading(false);
+        };
+
+        initializeAuth();
     }, [token]);
 
-    const login = async ({ email, password }: {email: string; password: string }) => {
+    const login = async ({ email, password }: { email: string; password: string }) => {
+        setLoading(true);
+        setError("");
+        
         try {
-            const response = await axiosInstance.post('/users/auth/login', {
-                email,
-                password,
-            });
-
-            console.log('Login response:', response.data); // DEBUG
-
-            if (response.data.success) {
-                const { user, token } = response.data.data;
-
-                // Αποθήκευση
-                localStorage.setItem('token', token);
-                localStorage.setItem('user', JSON.stringify(user));
-
-                // Update state
-                setUser(user);
-                setToken(token);
-
-                return { success: true };
+            console.log("Attempting login...");
+            // Χρησιμοποιούμε το σωστό endpoint από το Laravel project σου
+            const response = await axiosInstance.post<LoginResponse>(
+                "/users/auth/login",
+                { email, password }
+            );
+            
+            console.log("Login response:", response.data);
+            
+            if (response.data.success && response.data.data) {
+                const { user: userData, token: userToken } = response.data.data;
+                setUser(userData);
+                setToken(userToken);
+                localStorage.setItem("token", userToken);
+                console.log("Login successful");
+                navigate("/");
+                return response.data.data;
+            } else {
+                throw new Error(response.data.message || 'Login failed');
             }
         } catch (error: any) {
-            console.error('Login error:', error);
-            return {
-                success: false,
-                message: error.response?.data?.message || 'Login failed'
-            };
+            console.error("Login error:", error);
+            const message = error.response?.data?.message || 'Login failed';
+            setError(message);
+            throw new Error(message);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const register = ({ name, email, password }: { name: string; email: string; password: string }) => {
-        setLoading(true); // ✅ Ξεκίνα loading για register
-        return axiosInstance.post("/users/auth/register", { name, email, password })
-            .then(response => {
-                console.log("Register response:", response.data);
-                const data = response.data.data;
-                setUser(data.user);
-                setToken(data.token);
-                localStorage.setItem("token", data.token);
-                return data;
-            })
-            .finally(() => {
-                setLoading(false); // ✅ Τέλος loading
-            });
+    const register = async ({ name, email, password }: { name: string; email: string; password: string }) => {
+        setLoading(true);
+        setError("");
+        
+        try {
+            console.log("Attempting registration...");
+            // Χρησιμοποιούμε το σωστό endpoint από το Laravel project σου
+            const response = await axiosInstance.post(
+                "/users/auth/register", 
+                { name, email, password }
+            );
+            
+            console.log("Register response:", response.data);
+            
+            if (response.data.success && response.data.data) {
+                const { user: userData, token: userToken } = response.data.data;
+                setUser(userData);
+                setToken(userToken);
+                localStorage.setItem("token", userToken);
+                console.log("Registration successful");
+                navigate("/");
+                return response.data.data;
+            } else {
+                throw new Error(response.data.message || 'Registration failed');
+            }
+        } catch (error: any) {
+            console.error("Registration error:", error);
+            const message = error.response?.data?.message || 'Registration failed';
+            setError(message);
+            throw new Error(message);
+        } finally {
+            setLoading(false);
+        }
     };
-
-    const logout = (): Promise<void> => {
-        setLoading(true); // ✅ Ξεκίνα loading για logout
-        return axiosInstance.post("/users/auth/logout")
-            .then(() => {
-                setUser(undefined);
-                setToken(null);
-                localStorage.removeItem("token");
-            })
-            .catch(error => {
-                console.error("Logout error:", error);
-                // ✅ Ακόμα και αν αποτύχει, κάνε logout τοπικά
-                setUser(undefined);
-                setToken(null);
-                localStorage.removeItem("token");
-            })
-            .finally(() => {
-                setLoading(false); // ✅ Τέλος loading
-            });
+  
+    const logout = async (): Promise<void> => {
+        try {
+            // Χρησιμοποιούμε το σωστό endpoint από το Laravel project σου
+            await axiosInstance.post("/users/auth/logout");
+        } catch (error) {
+            console.error("Logout error:", error);
+        } finally {
+            setUser(undefined);
+            setToken(null);
+            localStorage.removeItem("token");
+            console.log("User logged out");
+            navigate("/");
+        }
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, token, login, register, logout, loading, error }}>
             {children}
         </AuthContext.Provider>
     );
