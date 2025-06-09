@@ -27,72 +27,70 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
 
     useEffect(() => {
-        if (token) {
-          axiosInstance.get("/users/user/me")
-            .then((response) => {
-              console.log("Raw user data response:", response);
-              console.log("User data response:", response.data);
-              
-              // Έλεγξε αν υπάρχουν δεδομένα χρήστη σε οποιαδήποτε μορφή
-              if (response.data && response.data.data && response.data.data.user) {
-                // Αν έχει την προβλεπόμενη δομή
-                setUser(response.data.data.user);
-              } else if (response.data && response.data.user) {
-                // Άλλη πιθανή δομή
-                setUser(response.data.user);
-              } else if (response.data && response.data.data) {
-                // Ίσως ο χρήστης είναι άμεσα στο data
-                setUser(response.data.data);
-              } else if (response.data) {
-                // Ή απλά η απάντηση είναι ο χρήστης
-                setUser(response.data);
-              } else {
-                console.error("Unexpected user response format:", response.data);
-              }
-            })
-            .catch(error => {
-              console.error("Error fetching user data:", error);
-            });
-        }
-      }, [token]);
+    if (token) {
+        // ✅ ΠΡΟΣΘΕΣΕ ΑΥΤΟ: Στείλε το token σε κάθε request
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+        axiosInstance.get("/users/user/me")
+        .then((response) => {
+            console.log("Raw user data response:", response);
+            // ... rest of your code
+        })
+        .catch(error => {
+            console.error("Error fetching user data:", error);
+        });
+    } else {
+        // ✅ ΠΡΟΣΘΕΣΕ ΑΥΤΟ: Αφαίρεσε το header αν δεν υπάρχει token
+        delete axiosInstance.defaults.headers.common['Authorization'];
+    }
+}, [token]);
 
     const login = ({ email, password }: { email: string; password: string }) => {
-        return axiosInstance.post<LoginResponse>
-            ("/users/auth/login",
-                { email, password })
-            .then(response => {
-                console.log("Login response:", response.data);
-                const data = response.data.data;
-                setUser(data.user);
-                setToken(data.token);
-                localStorage.setItem("token", data.token);
-                return data;
-            });
-    };
+    return axiosInstance.post<LoginResponse>("/users/auth/login", { email, password })
+    .then(response => {
+        console.log("Login response:", response.data);
+        const data = response.data.data;
+        setUser(data.user);
+        setToken(data.token);
+        localStorage.setItem("token", data.token);
+        
+        // ✅ ΠΡΟΣΘΕΣΕ ΑΥΤΟ:
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+        
+        return data;
+    });
+};
 
-    const register = ({ name, email, password }: { name: string; email: string; password: string }) => {
-      return axiosInstance.post("/users/auth/register", { name, email, password })
-          .then(response => {
-              console.log("Register response:", response.data);
-              const data = response.data.data;
-              setUser(data.user);
-              setToken(data.token);
-              localStorage.setItem("token", data.token);
-              return data;
-          });
-  };
-  
-    const logout = (): Promise<void> => {
-        return axiosInstance.post("/users/auth/logout")
-            .then(() => {
-                setUser(undefined);
-                setToken(null);
-                localStorage.removeItem("token");
-            })
-            .catch(error => {
-                console.error("Logout error:", error);
-            });
-    };
+const register = ({ name, email, password }: { name: string; email: string; password: string }) => {
+    return axiosInstance.post("/users/auth/register", { name, email, password })
+    .then(response => {
+        console.log("Register response:", response.data);
+        const data = response.data.data;
+        setUser(data.user);
+        setToken(data.token);
+        localStorage.setItem("token", data.token);
+        
+        // ✅ ΠΡΟΣΘΕΣΕ ΑΥΤΟ:
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+        
+        return data;
+    });
+};
+
+const logout = (): Promise<void> => {
+    return axiosInstance.post("/users/auth/logout")
+    .then(() => {
+        setUser(undefined);
+        setToken(null);
+        localStorage.removeItem("token");
+        
+        // ✅ ΠΡΟΣΘΕΣΕ ΑΥΤΟ:
+        delete axiosInstance.defaults.headers.common['Authorization'];
+    })
+    .catch(error => {
+        console.error("Logout error:", error);
+    });
+};
 
     return (
         <AuthContext.Provider value={{ user, token, login, register, logout }}>
