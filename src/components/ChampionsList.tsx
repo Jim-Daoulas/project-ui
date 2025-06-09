@@ -26,43 +26,44 @@ const ChampionsList = ({
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
 
-  // ✅ ΑΦΑΙΡΕΣΗ των προβληματικών γραμμών:
-  // const endpoint = guestMode ? '/champions/public' : '/champions/champions';
-  // const response = await axiosInstance.get<ChampionsResponse>(endpoint);
-
-  // Fetch champions from API
-  useEffect(() => {
-    const fetchChampions = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // ✅ Χρησιμοποίησε το dynamic endpoint
-        const endpoint = guestMode ? '/champions/public' : '/champions/champions';
-        const response = await axiosInstance.get<ChampionsResponse>(endpoint);
-        
-        console.log('API Response:', response.data);
-        
-        if (response.data.success && Array.isArray(response.data.data)) {
-          setChampions(response.data.data);
-          console.log('Champions loaded:', response.data.data);
-        } else if (Array.isArray(response.data)) {
-          setChampions(response.data);
-          console.log('Champions loaded (fallback):', response.data);
-        } else {
-          console.error('Unexpected data format:', response.data);
-          setError('Failed to fetch champions - unexpected data format');
-        }
-      } catch (err) {
-        setError('Error fetching champions');
-        console.error('Error fetching champions:', err);
-      } finally {
-        setLoading(false);
+  // ✅ Μία μόνο fetchChampions function
+  const fetchChampions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
+      
+      console.log('API Response:', response.data);
+      
+      if (response.data.success && Array.isArray(response.data.data)) {
+        setChampions(response.data.data);
+        console.log('Champions loaded:', response.data.data);
+      } else if (Array.isArray(response.data)) {
+        setChampions(response.data);
+        console.log('Champions loaded (fallback):', response.data);
+      } else {
+        console.error('Unexpected data format:', response.data);
+        setError('Failed to fetch champions - unexpected data format');
       }
-    };
+    } catch (err) {
+      setError('Error fetching champions');
+      console.error('Error fetching champions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // ✅ Μία μόνο handleUnlockSuccess function
+  const handleUnlockSuccess = () => {
+    console.log('Unlock successful, refreshing champions...');
+    fetchChampions(); // Reuse την ίδια function
+  };
+
+  // Initial fetch
+  useEffect(() => {
     fetchChampions();
-  }, [user, guestMode]);
+  }, [user]);
 
   // Filter champions based on search and filters
   const filteredChampions = (champions || []).filter(champion => {
@@ -79,23 +80,6 @@ const ChampionsList = ({
   // Get unique roles and regions for filters
   const roles = [...new Set((champions || []).map(champion => champion?.role).filter(Boolean))];
   const regions = [...new Set((champions || []).map(champion => champion?.region).filter(Boolean))];
-
-  // Handler για refresh μετά από unlock
-  const handleUnlockSuccess = () => {
-    const fetchChampions = async () => {
-      try {
-        // ✅ Χρησιμοποίησε το σωστό endpoint και εδώ
-        const endpoint = guestMode ? '/champions/public' : '/champions/champions';
-        const response = await axiosInstance.get<ChampionsResponse>(endpoint);
-        if (response.data.success && Array.isArray(response.data.data)) {
-          setChampions(response.data.data);
-        }
-      } catch (err) {
-        console.error('Error refreshing champions:', err);
-      }
-    };
-    fetchChampions();
-  };
 
   if (loading) {
     return (
