@@ -11,10 +11,10 @@ interface ChampionsListProps {
   limit?: number;
 }
 
-const ChampionsList = ({ 
-  showFilters = true, 
-  showTitle = true, 
-  limit 
+const ChampionsList = ({
+  showFilters = true,
+  showTitle = true,
+  limit
 }: ChampionsListProps) => {
   const { user } = useAuth();
   const [champions, setChampions] = useState<Champion[]>([]);
@@ -24,56 +24,49 @@ const ChampionsList = ({
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
 
-  // Temporary debug - remove after testing
-useEffect(() => {
-  console.log('🔄 Component mounted, user:', user);
-  console.log('📊 Champions state:', champions.length);
-}, [user, champions]);
   // Fetch champions from API
-useEffect(() => {
-  const fetchChampions = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
-      
-      if (response.data.success && Array.isArray(response.data.data)) {
-        setChampions(response.data.data);
-        // ✅ ΠΡΟΣΘΕΣΕ ΕΔΩ:
-        console.log('🎮 Champions loaded:', response.data.data.length);
-        console.log('🔍 First champion:', response.data.data[0]);
-      } else if (Array.isArray(response.data)) {
-        setChampions(response.data);
-        // ✅ ΚΑΙ ΕΔΩ:
-        console.log('🎮 Champions loaded (fallback):', response.data.length);
-        console.log('🔍 First champion:', response.data[0]);
-      } else {
-        setError('Failed to fetch champions - unexpected data format');
+  useEffect(() => {
+    const fetchChampions = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
+        console.log('API Response:', response.data);
+
+        if (response.data.success && Array.isArray(response.data.data)) {
+          setChampions(response.data.data);
+          console.log('Champions loaded:', response.data.data);
+        } else if (Array.isArray(response.data)) {
+          setChampions(response.data);
+          console.log('Champions loaded (fallback):', response.data);
+        } else {
+          console.error('Unexpected data format:', response.data);
+          setError('Failed to fetch champions - unexpected data format');
+        }
+      } catch (err) {
+        setError('Error fetching champions');
+        console.error('Error fetching champions:', err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError('Error fetching champions');
-      console.error('Error fetching champions:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchChampions();
-}, [user]);
+    fetchChampions();
+  }, [user]);
 
-  // Filter champions
+  // Filter champions based on search and filters
   const filteredChampions = (champions || []).filter(champion => {
     if (!champion) return false;
-    
+
     const matchesSearch = (champion.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (champion.title || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = selectedRole === 'all' || champion.role === selectedRole;
     const matchesRegion = selectedRegion === 'all' || champion.region === selectedRegion;
-    
+
     return matchesSearch && matchesRole && matchesRegion;
   }).slice(0, limit);
 
-  // Get unique roles and regions
+  // Get unique roles and regions for filters
   const roles = [...new Set((champions || []).map(champion => champion?.role).filter(Boolean))];
   const regions = [...new Set((champions || []).map(champion => champion?.region).filter(Boolean))];
 
@@ -127,6 +120,7 @@ useEffect(() => {
       {/* Filters */}
       {showFilters && (
         <div className="mb-8 px-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search */}
           <div className="form-control">
             <label className="label">
               <span className="label-text text-gray-500">Search Champions</span>
@@ -140,6 +134,7 @@ useEffect(() => {
             />
           </div>
 
+          {/* Role Filter */}
           <div className="form-control">
             <label className="label">
               <span className="label-text text-white">Filter by Role</span>
@@ -156,6 +151,7 @@ useEffect(() => {
             </select>
           </div>
 
+          {/* Region Filter */}
           <div className="form-control">
             <label className="label">
               <span className="label-text text-white">Filter by Region</span>
@@ -188,82 +184,67 @@ useEffect(() => {
         </div>
       ) : (
         <div className="px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredChampions.map(champion => {
-            // ✅ UPDATED: Use new field names
-            const isUnlocked = champion.user_has_unlocked || champion.is_unlocked_by_default;
-            // ✅ ΠΡΟΣΘΕΣΕ ΕΔΩ (μετά το const isUnlocked):
-      console.log(`🔍 Champion ${champion.name}:`, {
-        isUnlocked,
-        user_has_unlocked: champion.user_has_unlocked,
-        is_unlocked_by_default: champion.is_unlocked_by_default,
-        user_can_unlock: champion.user_can_unlock
-      });
-            
-            return (
-              <div
-                key={champion.id}
-                className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
-              >
-                {/* ✅ UPDATED: Lock Overlay */}
-                {!isUnlocked && (
-                  <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-                    <div className="text-4xl mb-2">🔒</div>
-                    <div className="text-white text-center px-4">
-                      <p className="text-sm font-semibold mb-2">Locked Champion</p>
-                      <UnlockButton
-                        type="champion"
-                        id={champion.id}
-                        name={champion.name}
-                        cost={champion.unlock_cost}
-                        isUnlockedByDefault={champion.is_unlocked_by_default}
-                        isUnlocked={champion.user_has_unlocked}
-                        canUnlock={champion.user_can_unlock}
-                        className="btn-sm"
-                        onSuccess={handleUnlockSuccess}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Background Image */}
-                <img
-                  src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
-                  alt={champion.name}
-                  className={`absolute inset-0 w-full h-full object-cover transition-all duration-300 ${
-                    !isUnlocked ? 'grayscale blur-sm' : ''
-                  }`}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
-                  }}
-                />
-                
-                {/* ✅ UPDATED: Link only if unlocked */}
-                {isUnlocked && (
-                  <Link 
-                    to={`/champions/${champion.id}`}
-                    className="absolute inset-0 z-5"
-                  />
-                )}
-                
-                {/* Bottom bar */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3 z-5">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-white font-bold text-lg uppercase tracking-wide">
-                      {champion.name}
-                    </h2>
-                    {champion.is_unlocked_by_default && (
-                      <div className="badge badge-success badge-sm">Free</div>
-                    )}
-                    {/* ✅ UPDATED: Use new field name */}
-                    {champion.user_has_unlocked && !champion.is_unlocked_by_default && (
-                      <div className="badge badge-primary badge-sm">Owned</div>
-                    )}
+          {filteredChampions.map(champion => (
+            <div
+              key={champion.id}
+              className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
+            >
+              {/* ✅ ΔΙΟΡΘΩΣΗ: Χρήση user_has_unlocked αντί για is_unlocked */}
+              {!champion.user_has_unlocked && (
+                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+                  <div className="text-4xl mb-2">🔒</div>
+                  <div className="text-white text-center px-4">
+                    <p className="text-sm font-semibold mb-2">Locked Champion</p>
+                    <p className="text-xs mb-3 opacity-75">Cost: {champion.unlock_cost} points</p>
+                    <UnlockButton
+                      type="champion"
+                      id={champion.id}
+                      name={champion.name}
+                      cost={champion.unlock_cost}
+                      canUnlock={champion.user_can_unlock}  // ✅ canUnlock αντί για userCanUnlock
+                      className="btn-sm"
+                      onSuccess={handleUnlockSuccess}
+                    />
                   </div>
                 </div>
+              )}
+
+              {/* Background Image */}
+              <img
+                src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
+                alt={champion.name}
+                className={`absolute inset-0 w-full h-full object-cover transition-all duration-300 ${!champion.user_has_unlocked ? 'grayscale blur-sm' : ''
+                  }`}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = `https://via.placeholder.com/400x500/667eea/ffff?text=${champion.name.charAt(0)}`;
+                }}
+              />
+
+              {/* ✅ ΔΙΟΡΘΩΣΗ: Link μόνο αν είναι unlocked */}
+              {champion.user_has_unlocked && (
+                <Link
+                  to={`/champions/${champion.id}`}
+                  className="absolute inset-0 z-5"
+                />
+              )}
+
+              {/* Bottom bar with champion name */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3 z-5">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+                    {champion.name}
+                  </h2>
+                  {champion.is_unlocked_by_default && (
+                    <div className="badge badge-success badge-sm">Free</div>
+                  )}
+                  {champion.user_has_unlocked && !champion.is_unlocked_by_default && (
+                    <div className="badge badge-primary badge-sm">Owned</div>
+                  )}
+                </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
     </div>
