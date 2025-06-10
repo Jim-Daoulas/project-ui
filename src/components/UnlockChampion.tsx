@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../api/axiosInstance';
 import { Champion } from '../types/champions';
@@ -10,6 +11,7 @@ interface UnlockChampionProps {
 
 const UnlockChampion = ({ champion, onUnlock }: UnlockChampionProps) => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [isUnlocking, setIsUnlocking] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -39,11 +41,11 @@ const UnlockChampion = ({ champion, onUnlock }: UnlockChampionProps) => {
             if (response.data.success) {
                 setSuccess(response.data.message);
                 if (onUnlock) {
-                    onUnlock(champion);
+                    await onUnlock(champion);
                 }
-                // Refresh page ή update state
+                // Navigate to champion detail instead of champions list
                 setTimeout(() => {
-                    window.location.href = '/champions';
+                    navigate(`/champions/${champion.id}`, { replace: true });
                 }, 1500);
             } else {
                 setError(response.data.message || 'Failed to unlock champion');
@@ -129,8 +131,8 @@ const UnlockChampion = ({ champion, onUnlock }: UnlockChampionProps) => {
                         ${isUnlocking
                             ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                             : userPoints >= unlockCost
-                                ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg hover:shadow-purple-500/25'
-                                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                            ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg hover:shadow-purple-500/25'
+                            : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         }
                     `}
                 >

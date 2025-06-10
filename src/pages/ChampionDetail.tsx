@@ -18,26 +18,26 @@ const ChampionDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchChampion = async () => {
-      if (!id) return;
+  const fetchChampion = async () => {
+    if (!id) return;
 
-      try {
-        setLoading(true);
-        const response = await axiosInstance.get<ChampionResponse>(`/champions/${id}`);
-        if (response.data.success) {
-          setChampion(response.data.data);
-        } else {
-          setError('Failed to fetch champion details');
-        }
-      } catch (err) {
-        setError('Error fetching champion details');
-        console.error('Error fetching champion:', err);
-      } finally {
-        setLoading(false);
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get<ChampionResponse>(`/champions/${id}`);
+      if (response.data.success) {
+        setChampion(response.data.data);
+      } else {
+        setError('Failed to fetch champion details');
       }
-    };
+    } catch (err) {
+      setError('Error fetching champion details');
+      console.error('Error fetching champion:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchChampion();
   }, [id]);
 
@@ -76,17 +76,12 @@ const ChampionDetail = () => {
               <UnlockChampion
                 champion={champion}
                 onUnlock={async () => {
-                  // Re-fetch champion data
+                  // Re-fetch champion data after unlock
                   try {
-                    const response = await axiosInstance.get(`/champions/${id}`);
-                    if (response.data.success) {
-                      setChampion(response.data.data);
-                    } else {
-                      window.location.reload();
-                    }
+                    console.log('Refetching champion data after unlock...');
+                    await fetchChampion();
                   } catch (err) {
                     console.error('Error refetching champion:', err);
-                    window.location.reload();
                   }
                 }}
               />
