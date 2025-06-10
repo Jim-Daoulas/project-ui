@@ -31,7 +31,7 @@ const ChampionsList = ({
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
   
   const { user } = useAuth();
-  const { unlockChampion } = useUnlock();
+  const { userProgress, unlockChampion } = useUnlock();
 
   // ✅ Fetch champions with unlock functionality
   const fetchChampions = async () => {
@@ -48,7 +48,11 @@ const ChampionsList = ({
       if (response.data.success && Array.isArray(response.data.data)) {
         setChampions(response.data.data);
         console.log('Champions loaded:', response.data.data);
-        console.log('Champions with lock status:', response.data.data.map(c => ({ name: c.name, is_locked: c.is_locked })));
+        console.log('Detailed champions:', response.data.data.map(c => ({
+          id: c.id,
+          name: c.name,
+          is_locked: c.is_locked
+        })));
       } else {
         console.error('Unexpected data format:', response.data);
         setError('Failed to fetch champions - unexpected data format');
@@ -68,6 +72,11 @@ const ChampionsList = ({
     
     if (!user) {
       alert('Please login to unlock champions');
+      return;
+    }
+
+    if (!userProgress || userProgress.points < (champions.find(c => c.id === championId)?.unlock_cost || 0)) {
+      alert('Not enough points to unlock this champion');
       return;
     }
 
@@ -109,8 +118,8 @@ const ChampionsList = ({
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <span className="loading loading-spinner loading-lg"></span>
-        <span className="ml-4 text-lg">Loading champions...</span>
+        <span className="loading loading-spinner loading-lg text-white"></span>
+        <span className="ml-4 text-lg text-white">Loading champions...</span>
       </div>
     );
   }
@@ -138,18 +147,30 @@ const ChampionsList = ({
         </div>
       )}
 
+      {/* User info - only show if not already shown in parent */}
+      {user && userProgress && !showTitle && (
+        <div className="mb-6 px-8">
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
+            <p className="text-lg text-white">
+              Welcome, <strong>{user.name}</strong>! 
+              You have <strong className="text-yellow-400">{userProgress.points}</strong> points.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       {showFilters && (
         <div className="mb-8 px-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-gray-500">Search Champions</span>
+              <span className="label-text text-gray-300">Search Champions</span>
             </label>
             <input
               type="text"
               placeholder="Search by name or title..."
-              className="input input-bordered w-full text-gray-600 border-gray-600"
+              className="input input-bordered w-full text-gray-800 bg-white/90"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -158,10 +179,10 @@ const ChampionsList = ({
           {/* Role Filter */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-white">Filter by Role</span>
+              <span className="label-text text-gray-300">Filter by Role</span>
             </label>
             <select
-              className="select select-bordered w-full text-gray-500 border-gray-600"
+              className="select select-bordered w-full text-gray-800 bg-white/90"
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
             >
@@ -175,10 +196,10 @@ const ChampionsList = ({
           {/* Region Filter */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-white">Filter by Region</span>
+              <span className="label-text text-gray-300">Filter by Region</span>
             </label>
             <select
-              className="select select-bordered w-full text-gray-500 border-gray-600"
+              className="select select-bordered w-full text-gray-800 bg-white/90"
               value={selectedRegion}
               onChange={(e) => setSelectedRegion(e.target.value)}
             >
@@ -192,7 +213,7 @@ const ChampionsList = ({
       )}
 
       {/* Results Count */}
-      <div className="mb-6 px-8 text-sm text-gray-400">
+      <div className="mb-6 px-8 text-sm text-gray-300">
         Showing {filteredChampions.length} of {champions.length} champions
       </div>
 
@@ -219,7 +240,7 @@ const ChampionsList = ({
                   className="absolute inset-0 w-full h-full object-cover filter grayscale"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = `https://via.placeholder.com/400x500/667eea/ffff?text=${champion.name.charAt(0)}`;
+                    target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
                   }}
                 />
                 
@@ -227,14 +248,17 @@ const ChampionsList = ({
                 <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center">
                   <div className="text-white text-center">
                     <div className="text-4xl mb-2">🔒</div>
-                    <p className="text-sm mb-2">Locked</p>
-                    {user && (
-                      <div className="bg-yellow-500 hover:bg-yellow-600 px-3 py-1 rounded text-xs font-semibold transition-colors">
+                    <p className="text-sm mb-3 font-semibold">Locked</p>
+                    {user && userProgress ? (
+                      <div className={`px-3 py-2 rounded text-xs font-semibold transition-colors ${
+                        userProgress.points >= (champion.unlock_cost || 0)
+                          ? 'bg-yellow-500 hover:bg-yellow-600 cursor-pointer'
+                          : 'bg-gray-500 cursor-not-allowed'
+                      }`}>
                         Unlock ({champion.unlock_cost || 0} points)
                       </div>
-                    )}
-                    {!user && (
-                      <div className="bg-gray-500 px-3 py-1 rounded text-xs">
+                    ) : (
+                      <div className="bg-gray-500 px-3 py-2 rounded text-xs font-semibold">
                         Login to Unlock
                       </div>
                     )}
@@ -246,6 +270,7 @@ const ChampionsList = ({
                   <h2 className="text-white font-bold text-lg uppercase tracking-wide">
                     {champion.name}
                   </h2>
+                  <p className="text-gray-300 text-sm">{champion.title}</p>
                 </div>
               </div>
             ) : (
@@ -261,15 +286,24 @@ const ChampionsList = ({
                   className="absolute inset-0 w-full h-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = `https://via.placeholder.com/400x500/667eea/ffff?text=${champion.name.charAt(0)}`;
+                    target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
                   }}
                 />
+                
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
+                  <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="text-2xl mb-2">👁️</div>
+                    <p className="text-sm font-semibold">View Details</p>
+                  </div>
+                </div>
                 
                 {/* Bottom bar with champion name */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
                   <h2 className="text-white font-bold text-lg uppercase tracking-wide">
                     {champion.name}
                   </h2>
+                  <p className="text-gray-300 text-sm">{champion.title}</p>
                 </div>
               </Link>
             )
