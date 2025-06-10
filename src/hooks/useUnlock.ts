@@ -31,7 +31,7 @@ export const useUnlock = () => {
   const unlockChampion = async (championId: number): Promise<UnlockResult> => {
     try {
       setLoading(true);
-      const response = await axiosInstance.post(`/unlocks/unlock/champion/${championId}`);
+      const response = await axiosInstance.post(`/unlocks/champion/${championId}`);
       
       if (response.data.success) {
         // Ενημέρωση local state
@@ -59,7 +59,7 @@ export const useUnlock = () => {
   const unlockSkin = async (skinId: number): Promise<UnlockResult> => {
     try {
       setLoading(true);
-      const response = await axiosInstance.post(`/unlocks/unlock/skin/${skinId}`);
+      const response = await axiosInstance.post(`/unlocks/skin/${skinId}`);
       
       if (response.data.success) {
         // Ενημέρωση local state
