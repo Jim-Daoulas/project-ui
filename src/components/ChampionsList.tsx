@@ -70,37 +70,42 @@ useEffect(() => {
 
   // Handle champion unlock
   const handleUnlockChampion = async (championId: number, championName: string) => {
-    if (!user) {
-      alert('Please login to unlock champions');
-      return;
-    }
+  if (!user) {
+    alert('Please login to unlock champions');
+    return;
+  }
 
-    setUnlockingChampion(championId);
+  setUnlockingChampion(championId);
+  
+  try {
+    const response = await axiosInstance.post(`/unlocks/champion/${championId}`);
     
-    try {
-     const response = await axiosInstance.post(`/unlocks/champion/${championId}`);
+    if (response.data.success) {
+      // ✅ ΔΙΟΡΘΩΣΗ: Ενημέρωση local state
+      setChampions(prev => 
+        prev.map(champion => 
+          champion.id === championId 
+            ? { ...champion, is_locked: false }
+            : champion
+        )
+      );
       
-      if (response.data.success) {
-        // Update the champion in the local state
-        setChampions(prev => 
-          prev.map(champion => 
-            champion.id === championId 
-              ? { ...champion, is_locked: false }
-              : champion
-          )
-        );
-        
-        alert(`${championName} unlocked successfully!`);
-      } else {
-        alert(response.data.message || 'Failed to unlock champion');
-      }
-    } catch (err: any) {
-      console.error('Error unlocking champion:', err);
-      alert(err.response?.data?.message || 'Failed to unlock champion');
-    } finally {
-      setUnlockingChampion(null);
+      alert(`${championName} unlocked successfully!`);
+      
+      // ✅ ΔΙΟΡΘΩΣΗ: Force refresh της σελίδας για να ενημερωθούν τα points
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      alert(response.data.message || 'Failed to unlock champion');
     }
-  };
+  } catch (err: any) {
+    console.error('Error unlocking champion:', err);
+    alert(err.response?.data?.message || 'Failed to unlock champion');
+  } finally {
+    setUnlockingChampion(null);
+  }
+};
 
   // Filter champions based on search and filters
   const filteredChampions = (champions || []).filter(champion => {

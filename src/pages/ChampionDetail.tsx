@@ -10,7 +10,7 @@ import { BaseResponse } from '../types/helpers';
 import ChampionRework from '../components/ChampionRework';
 
 // Types based on your structure
-interface ChampionResponse extends BaseResponse<Champion> {}
+interface ChampionResponse extends BaseResponse<Champion> { }
 
 const ChampionDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,7 +21,7 @@ const ChampionDetail = () => {
   useEffect(() => {
     const fetchChampion = async () => {
       if (!id) return;
-      
+
       try {
         setLoading(true);
         const response = await axiosInstance.get<ChampionResponse>(`/champions/${id}`);
@@ -69,15 +69,26 @@ const ChampionDetail = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto space-y-12">
-          
+
           {/* Check if champion is locked */}
           {champion.is_locked ? (
             <section>
-              <UnlockChampion 
-                champion={champion} 
-                onUnlock={() => {
-                  setChampion(prev => prev ? {...prev, is_locked: false} : null);}
-                } 
+              <UnlockChampion
+                champion={champion}
+                onUnlock={async () => {
+                  // Re-fetch champion data
+                  try {
+                    const response = await axiosInstance.get(`/champions/${id}`);
+                    if (response.data.success) {
+                      setChampion(response.data.data);
+                    } else {
+                      window.location.reload();
+                    }
+                  } catch (err) {
+                    console.error('Error refetching champion:', err);
+                    window.location.reload();
+                  }
+                }}
               />
             </section>
           ) : (
@@ -86,7 +97,7 @@ const ChampionDetail = () => {
               <section>
                 <ChampionInfo champion={champion} />
               </section>
-              
+
               {/* Ability Section */}
               {champion.abilities && champion.abilities.length > 0 && (
                 <section>
@@ -95,7 +106,7 @@ const ChampionDetail = () => {
                   />
                 </section>
               )}
-              
+
               {/* Skins Section */}
               {champion.skins && champion.skins.length > 0 && (
                 <section>
@@ -110,9 +121,9 @@ const ChampionDetail = () => {
               {/* Rework Section */}
               {champion.rework && (
                 <section>
-                  <ChampionRework 
-                    champion={champion} 
-                    rework={champion.rework} 
+                  <ChampionRework
+                    champion={champion}
+                    rework={champion.rework}
                   />
                 </section>
               )}
@@ -120,7 +131,7 @@ const ChampionDetail = () => {
           )}
         </div>
       </div>
-      
+
       {/* Back to Top Button */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
