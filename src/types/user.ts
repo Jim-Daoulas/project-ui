@@ -5,6 +5,10 @@ export type User = {
     email: string;
     name: string;
     points?: number;
+    unlocked_champions_count?: number;
+    unlocked_skins_count?: number;
+    unlocked_champion_ids?: number[];
+    unlocked_skin_ids?: number[];
     created_at: string;
     updated_at: string;
 }
