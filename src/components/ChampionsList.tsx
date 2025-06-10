@@ -12,7 +12,16 @@ interface ChampionsApiResponse {
   message: string;
 }
 
-const ChampionsList = () => {
+// ✅ ADD: Props interface for ChampionsList
+interface ChampionsListProps {
+  showFilters?: boolean;
+  showTitle?: boolean;
+}
+
+const ChampionsList: React.FC<ChampionsListProps> = ({ 
+  showFilters = true, 
+  showTitle = true 
+}) => {
   const [champions, setChampions] = useState<Champion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +41,6 @@ const ChampionsList = () => {
       console.log('API Response:', response.data);
       
       if (response.data.success && Array.isArray(response.data.data)) {
-        // ✅ FIX: Directly set the champions array
         setChampions(response.data.data);
         console.log('Champions loaded:', response.data.data.map(c => c.id));
         console.log('Champions with lock status:', response.data.data.map(c => ({ id: c.id, locked: c.is_locked })));
@@ -59,7 +67,6 @@ const ChampionsList = () => {
       const result = await unlockChampion(championId);
       
       if (result.success) {
-        // ✅ CRITICAL: Re-fetch champions after successful unlock
         await fetchChampions();
         alert(result.message || 'Champion unlocked successfully!');
       } else {
@@ -71,7 +78,6 @@ const ChampionsList = () => {
     }
   };
 
-  // ✅ Load champions on component mount and when user changes
   useEffect(() => {
     fetchChampions();
   }, [user]);
@@ -94,7 +100,10 @@ const ChampionsList = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold text-center mb-8">Champions</h1>
+      {/* ✅ Conditional title */}
+      {showTitle && (
+        <h1 className="text-4xl font-bold text-center mb-8">Champions</h1>
+      )}
       
       {/* User info for authenticated users */}
       {user && userProgress && (
@@ -103,6 +112,16 @@ const ChampionsList = () => {
             Welcome, <strong>{user.name}</strong>! 
             You have <strong>{userProgress.points}</strong> points.
           </p>
+        </div>
+      )}
+
+      {/* ✅ Conditional filters */}
+      {showFilters && (
+        <div className="mb-6 text-center">
+          <div className="text-gray-400">
+            {/* Add filter controls here if needed */}
+            Showing all champions
+          </div>
         </div>
       )}
 
