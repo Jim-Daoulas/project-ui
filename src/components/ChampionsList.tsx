@@ -78,7 +78,7 @@ useEffect(() => {
     setUnlockingChampion(championId);
     
     try {
-      const response = await axiosInstance.post(`/champions/${championId}/unlock`);
+      const response = await axiosInstance.post(`/unlock/${championId}/unlock`);
       
       if (response.data.success) {
         // Update the champion in the local state
