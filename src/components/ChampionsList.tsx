@@ -10,10 +10,10 @@ interface ChampionsListProps {
   limit?: number;
 }
 
-const ChampionsList = ({
-  showFilters = true,
-  showTitle = true,
-  limit
+const ChampionsList = ({ 
+  showFilters = true, 
+  showTitle = true, 
+  limit 
 }: ChampionsListProps) => {
   const { user } = useAuth();
   const [champions, setChampions] = useState<Champion[]>([]);
@@ -25,34 +25,21 @@ const ChampionsList = ({
   const [unlockingChampion, setUnlockingChampion] = useState<number | null>(null);
 
   // Fetch champions from API
-
   useEffect(() => {
     const fetchChampions = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await axiosInstance.get<ChampionsResponse>('/champions');
+        const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
         console.log('API Response:', response.data);
-
+        
         if (response.data.success && Array.isArray(response.data.data)) {
           setChampions(response.data.data);
           console.log('Champions loaded:', response.data.data);
-
-          // ✅ DEBUG LOGS:
-          console.log('Champions count:', response.data.data.length);
-          console.log('Locked champions:', response.data.data.filter(c => c.is_locked));
-          console.log('Unlocked champions:', response.data.data.filter(c => !c.is_locked));
-
         } else if (Array.isArray(response.data)) {
           // Fallback if data is directly an array
           setChampions(response.data);
           console.log('Champions loaded (fallback):', response.data);
-
-          // ✅ DEBUG LOGS για fallback:
-          console.log('Champions count (fallback):', response.data.length);
-          console.log('Locked champions (fallback):', response.data.filter(c => c.is_locked));
-          console.log('Unlocked champions (fallback):', response.data.filter(c => !c.is_locked));
-
         } else {
           console.error('Unexpected data format:', response.data);
           setError('Failed to fetch champions - unexpected data format');
@@ -68,35 +55,33 @@ const ChampionsList = ({
     fetchChampions();
   }, []);
 
-  // Handle champion unlock
-  const handleUnlockChampion = async (championId: number, championName: string) => {
+  // Unlock champion function
+  const handleUnlockChampion = async (championId: number) => {
     if (!user) {
       alert('Please login to unlock champions');
       return;
     }
 
-    setUnlockingChampion(championId);
-
     try {
-      const response = await axiosInstance.post(`/unlocks/champion/${championId}`);
-
+      setUnlockingChampion(championId);
+      const response = await axiosInstance.post(`/champions/${championId}/unlock`);
+      
       if (response.data.success) {
-        // ✅ Ενημέρωση local state
-        setChampions(prev =>
-          prev.map(champion =>
-            champion.id === championId
-              ? { ...champion, is_locked: false }
-              : champion
-          )
-        );
-
-        alert(`${championName} unlocked successfully!`);
+        // Update the champion in the list to be unlocked
+        setChampions(prev => prev.map(champion => 
+          champion.id === championId 
+            ? { ...champion, is_locked: false }
+            : champion
+        ));
+        
+        alert(response.data.message);
       } else {
         alert(response.data.message || 'Failed to unlock champion');
       }
     } catch (err: any) {
       console.error('Error unlocking champion:', err);
-      alert(err.response?.data?.message || 'Failed to unlock champion');
+      const errorMessage = err.response?.data?.message || 'Failed to unlock champion';
+      alert(errorMessage);
     } finally {
       setUnlockingChampion(null);
     }
@@ -105,12 +90,12 @@ const ChampionsList = ({
   // Filter champions based on search and filters
   const filteredChampions = (champions || []).filter(champion => {
     if (!champion) return false;
-
+    
     const matchesSearch = (champion.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (champion.title || '').toLowerCase().includes(searchQuery.toLowerCase());
+                         (champion.title || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = selectedRole === 'all' || champion.role === selectedRole;
     const matchesRegion = selectedRegion === 'all' || champion.region === selectedRegion;
-
+    
     return matchesSearch && matchesRole && matchesRegion;
   }).slice(0, limit); // Apply limit if provided
 
@@ -139,7 +124,7 @@ const ChampionsList = ({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full min-h-screen">
       {/* Title */}
       {showTitle && (
         <div className="mb-8 pt-8 px-8">
@@ -147,26 +132,21 @@ const ChampionsList = ({
           <p className="text-lg text-gray-500">
             Explore all League of Legends champions and their rework proposals
           </p>
-          {user && (
-            <p className="text-sm text-gray-600 mt-2">
-              Welcome, {user.name}! You have unlocked {champions.filter(c => !c.is_locked).length} champions.
-            </p>
-          )}
         </div>
       )}
 
       {/* Filters */}
       {showFilters && (
-        <div className="mb-8 max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mb-8 px-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-gray-300">Search Champions</span>
+              <span className="label-text text-gray-500">Search Champions</span>
             </label>
             <input
               type="text"
               placeholder="Search by name or title..."
-              className="input input-bordered w-full bg-gray-700 text-white border-gray-600"
+              className="input input-bordered w-full text-gray-600 border-gray-600"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -175,10 +155,10 @@ const ChampionsList = ({
           {/* Role Filter */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-gray-300">Filter by Role</span>
+              <span className="label-text text-white">Filter by Role</span>
             </label>
             <select
-              className="select select-bordered w-full bg-gray-700 text-white border-gray-600"
+              className="select select-bordered w-full text-gray-500 border-gray-600"
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
             >
@@ -192,10 +172,10 @@ const ChampionsList = ({
           {/* Region Filter */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-gray-300">Filter by Region</span>
+              <span className="label-text text-white">Filter by Region</span>
             </label>
             <select
-              className="select select-bordered w-full bg-gray-700 text-white border-gray-600"
+              className="select select-bordered w-full text-gray-500 border-gray-600"
               value={selectedRegion}
               onChange={(e) => setSelectedRegion(e.target.value)}
             >
@@ -209,7 +189,7 @@ const ChampionsList = ({
       )}
 
       {/* Results Count */}
-      <div className="mb-6 max-w-6xl mx-auto px-6 text-sm text-gray-400">
+      <div className="mb-6 px-8 text-sm text-gray-400">
         Showing {filteredChampions.length} of {champions.length} champions
       </div>
 
@@ -221,79 +201,65 @@ const ChampionsList = ({
           <p className="text-gray-400">Try adjusting your search or filters</p>
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {/* Rest of your champion cards remain the same */}
+        <div className="px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredChampions.map(champion => (
             <div
               key={champion.id}
               className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
             >
-              {/* Your existing card content */}
+              {/* Background Image */}
               <img
                 src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
                 alt={champion.name}
-                className={`absolute inset-0 w-full h-full object-cover transition-all duration-300 ${champion.is_locked ? 'grayscale brightness-50' : ''
-                  }`}
+                className="absolute inset-0 w-full h-full object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
                 }}
               />
-
-              {/* Lock overlay */}
+              
+              {/* Lock Overlay for locked champions */}
               {champion.is_locked && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
                   <div className="text-center">
                     <div className="text-4xl mb-2">🔒</div>
-                    <button
-                      onClick={() => handleUnlockChampion(champion.id, champion.name)}
-                      disabled={!user || unlockingChampion === champion.id}
-                      className={`
-                        px-4 py-2 rounded-lg font-medium transition-all duration-300
-                        ${!user
-                          ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                          : 'bg-yellow-600 hover:bg-yellow-500 text-white hover:scale-105'
-                        }
-                        ${unlockingChampion === champion.id ? 'opacity-50 cursor-not-allowed' : ''}
-                      `}
-                    >
-                      {unlockingChampion === champion.id ? (
-                        <span className="flex items-center gap-2">
-                          <span className="loading loading-spinner loading-sm"></span>
-                          Unlocking...
-                        </span>
-                      ) : !user ? (
-                        'Login to Unlock'
-                      ) : (
-                        'Unlock Champion'
-                      )}
-                    </button>
+                    <p className="text-white text-sm mb-3">Locked</p>
+                    {user ? (
+                      <button
+                        onClick={() => handleUnlockChampion(champion.id)}
+                        disabled={unlockingChampion === champion.id}
+                        className="btn btn-primary btn-sm"
+                      >
+                        {unlockingChampion === champion.id ? (
+                          <span className="loading loading-spinner loading-xs"></span>
+                        ) : (
+                          `Unlock (${champion.unlock_cost || 30} pts)`
+                        )}
+                      </button>
+                    ) : (
+                      <p className="text-gray-300 text-xs">Login to unlock</p>
+                    )}
                   </div>
                 </div>
               )}
-
-              {/* Champion Link (only if unlocked) */}
-              {!champion.is_locked ? (
+              
+              {/* Link to champion detail (only if unlocked) */}
+              {!champion.is_locked && (
                 <Link
                   to={`/champions/${champion.id}`}
-                  className="absolute inset-0 w-full h-full"
-                >
-                  {/* Bottom bar with champion name */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
-                    <h2 className="text-white font-bold text-lg uppercase tracking-wide">
-                      {champion.name}
-                    </h2>
-                  </div>
-                </Link>
-              ) : (
-                /* Bottom bar for locked champions */
-                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
-                  <h2 className="text-gray-400 font-bold text-lg uppercase tracking-wide">
-                    {champion.name}
-                  </h2>
-                  <p className="text-xs text-gray-500">🔒 Locked</p>
-                </div>
+                  className="absolute inset-0"
+                />
               )}
+              
+              {/* Bottom bar with champion name */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
+                <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+                  {champion.name}
+                </h2>
+                {champion.is_locked && (
+                  <p className="text-gray-300 text-xs">🔒 Locked</p>
+                )}
+              </div>
             </div>
           ))}
         </div>

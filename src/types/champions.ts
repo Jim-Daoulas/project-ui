@@ -15,11 +15,12 @@ export type Champion = {
   abilities?: Ability[];
   skins?: Skin[];
   rework?: Rework | null;
+  created_at?: string;
+  updated_at?: string;
+  
   unlock_cost?: number;
   is_unlocked_by_default?: boolean;
   is_locked?: boolean;
-  created_at?: string;
-  updated_at?: string;
 }
 
 export type ChampionsResponse = BaseResponse<{
