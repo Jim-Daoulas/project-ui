@@ -43,7 +43,7 @@ const UnlockChampion = ({ champion, onUnlock }: UnlockChampionProps) => {
                 }
                 // Refresh page ή update state
                 setTimeout(() => {
-                    window.location.reload();
+                    window.location.href = '/champions';
                 }, 1500);
             } else {
                 setError(response.data.message || 'Failed to unlock champion');
