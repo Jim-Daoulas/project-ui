@@ -10,10 +10,10 @@ interface ChampionsListProps {
   limit?: number;
 }
 
-const ChampionsList = ({ 
-  showFilters = true, 
-  showTitle = true, 
-  limit 
+const ChampionsList = ({
+  showFilters = true,
+  showTitle = true,
+  limit
 }: ChampionsListProps) => {
   const { user } = useAuth();
   const [champions, setChampions] = useState<Champion[]>([]);
@@ -26,96 +26,91 @@ const ChampionsList = ({
 
   // Fetch champions from API
 
-useEffect(() => {
-  const fetchChampions = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axiosInstance.get<ChampionsResponse>('/champions');
-      console.log('API Response:', response.data);
-      
-      if (response.data.success && Array.isArray(response.data.data)) {
-        setChampions(response.data.data);
-        console.log('Champions loaded:', response.data.data);
-        
-        // ✅ DEBUG LOGS:
-        console.log('Champions count:', response.data.data.length);
-        console.log('Locked champions:', response.data.data.filter(c => c.is_locked));
-        console.log('Unlocked champions:', response.data.data.filter(c => !c.is_locked));
-        
-      } else if (Array.isArray(response.data)) {
-        // Fallback if data is directly an array
-        setChampions(response.data);
-        console.log('Champions loaded (fallback):', response.data);
-        
-        // ✅ DEBUG LOGS για fallback:
-        console.log('Champions count (fallback):', response.data.length);
-        console.log('Locked champions (fallback):', response.data.filter(c => c.is_locked));
-        console.log('Unlocked champions (fallback):', response.data.filter(c => !c.is_locked));
-        
-      } else {
-        console.error('Unexpected data format:', response.data);
-        setError('Failed to fetch champions - unexpected data format');
-      }
-    } catch (err) {
-      setError('Error fetching champions');
-      console.error('Error fetching champions:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchChampions = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await axiosInstance.get<ChampionsResponse>('/champions');
+        console.log('API Response:', response.data);
 
-  fetchChampions();
-}, []);
+        if (response.data.success && Array.isArray(response.data.data)) {
+          setChampions(response.data.data);
+          console.log('Champions loaded:', response.data.data);
+
+          // ✅ DEBUG LOGS:
+          console.log('Champions count:', response.data.data.length);
+          console.log('Locked champions:', response.data.data.filter(c => c.is_locked));
+          console.log('Unlocked champions:', response.data.data.filter(c => !c.is_locked));
+
+        } else if (Array.isArray(response.data)) {
+          // Fallback if data is directly an array
+          setChampions(response.data);
+          console.log('Champions loaded (fallback):', response.data);
+
+          // ✅ DEBUG LOGS για fallback:
+          console.log('Champions count (fallback):', response.data.length);
+          console.log('Locked champions (fallback):', response.data.filter(c => c.is_locked));
+          console.log('Unlocked champions (fallback):', response.data.filter(c => !c.is_locked));
+
+        } else {
+          console.error('Unexpected data format:', response.data);
+          setError('Failed to fetch champions - unexpected data format');
+        }
+      } catch (err) {
+        setError('Error fetching champions');
+        console.error('Error fetching champions:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChampions();
+  }, []);
 
   // Handle champion unlock
   const handleUnlockChampion = async (championId: number, championName: string) => {
-  if (!user) {
-    alert('Please login to unlock champions');
-    return;
-  }
-
-  setUnlockingChampion(championId);
-  
-  try {
-    const response = await axiosInstance.post(`/unlocks/champion/${championId}`);
-    
-    if (response.data.success) {
-      // ✅ ΔΙΟΡΘΩΣΗ: Ενημέρωση local state
-      setChampions(prev => 
-        prev.map(champion => 
-          champion.id === championId 
-            ? { ...champion, is_locked: false }
-            : champion
-        )
-      );
-      
-      alert(`${championName} unlocked successfully!`);
-      
-      // ✅ ΔΙΟΡΘΩΣΗ: Force refresh της σελίδας για να ενημερωθούν τα points
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } else {
-      alert(response.data.message || 'Failed to unlock champion');
+    if (!user) {
+      alert('Please login to unlock champions');
+      return;
     }
-  } catch (err: any) {
-    console.error('Error unlocking champion:', err);
-    alert(err.response?.data?.message || 'Failed to unlock champion');
-  } finally {
-    setUnlockingChampion(null);
-  }
-};
+
+    setUnlockingChampion(championId);
+
+    try {
+      const response = await axiosInstance.post(`/unlocks/champion/${championId}`);
+
+      if (response.data.success) {
+        // ✅ Ενημέρωση local state
+        setChampions(prev =>
+          prev.map(champion =>
+            champion.id === championId
+              ? { ...champion, is_locked: false }
+              : champion
+          )
+        );
+
+        alert(`${championName} unlocked successfully!`);
+      } else {
+        alert(response.data.message || 'Failed to unlock champion');
+      }
+    } catch (err: any) {
+      console.error('Error unlocking champion:', err);
+      alert(err.response?.data?.message || 'Failed to unlock champion');
+    } finally {
+      setUnlockingChampion(null);
+    }
+  };
 
   // Filter champions based on search and filters
   const filteredChampions = (champions || []).filter(champion => {
     if (!champion) return false;
-    
+
     const matchesSearch = (champion.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (champion.title || '').toLowerCase().includes(searchQuery.toLowerCase());
+      (champion.title || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = selectedRole === 'all' || champion.role === selectedRole;
     const matchesRegion = selectedRegion === 'all' || champion.region === selectedRegion;
-    
+
     return matchesSearch && matchesRole && matchesRegion;
   }).slice(0, limit); // Apply limit if provided
 
@@ -237,15 +232,14 @@ useEffect(() => {
               <img
                 src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
                 alt={champion.name}
-                className={`absolute inset-0 w-full h-full object-cover transition-all duration-300 ${
-                  champion.is_locked ? 'grayscale brightness-50' : ''
-                }`}
+                className={`absolute inset-0 w-full h-full object-cover transition-all duration-300 ${champion.is_locked ? 'grayscale brightness-50' : ''
+                  }`}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
                 }}
               />
-              
+
               {/* Lock overlay */}
               {champion.is_locked && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -256,8 +250,8 @@ useEffect(() => {
                       disabled={!user || unlockingChampion === champion.id}
                       className={`
                         px-4 py-2 rounded-lg font-medium transition-all duration-300
-                        ${!user 
-                          ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                        ${!user
+                          ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                           : 'bg-yellow-600 hover:bg-yellow-500 text-white hover:scale-105'
                         }
                         ${unlockingChampion === champion.id ? 'opacity-50 cursor-not-allowed' : ''}
@@ -277,7 +271,7 @@ useEffect(() => {
                   </div>
                 </div>
               )}
-              
+
               {/* Champion Link (only if unlocked) */}
               {!champion.is_locked ? (
                 <Link
