@@ -276,7 +276,7 @@ const ChampionsList = ({
             ) : (
               <Link
                 key={champion.id}
-                to={user ? `/champions/${champion.id}` : `/champions/public/${champion.id}`}
+                to={`/champions/${champion.id}`}
                 className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
               >
                 {/* Background Image */}
