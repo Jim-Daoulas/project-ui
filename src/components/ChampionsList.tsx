@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useUnlock } from '../hooks/useUnlock';
+import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../api/axiosInstance';
 import { Champion, ChampionsResponse } from '../types/champions';
 
@@ -14,12 +16,15 @@ const ChampionsList = ({
   showTitle = true, 
   limit 
 }: ChampionsListProps) => {
+  const { user } = useAuth();
+  const { unlockChampion } = useUnlock();
   const [champions, setChampions] = useState<Champion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
+  const [unlockingChampion, setUnlockingChampion] = useState<number | null>(null);
 
   // Fetch champions from API
   useEffect(() => {
@@ -54,12 +59,43 @@ const ChampionsList = ({
     fetchChampions();
   }, []);
 
+  // Unlock champion function
+  const handleUnlockChampion = async (championId: number) => {
+    if (!user) {
+      alert('Please login to unlock champions');
+      return;
+    }
+
+    try {
+      setUnlockingChampion(championId);
+      const result = await unlockChampion(championId);
+      
+      if (result.success) {
+        // Update the champion in the list to be unlocked
+        setChampions(prev => prev.map(champion => 
+          champion.id === championId 
+            ? { ...champion, is_locked: false }
+            : champion
+        ));
+        
+        alert(result.message);
+      } else {
+        alert(result.message || 'Failed to unlock champion');
+      }
+    } catch (err: any) {
+      console.error('Error unlocking champion:', err);
+      alert('Failed to unlock champion');
+    } finally {
+      setUnlockingChampion(null);
+    }
+  };
+
   // Filter champions based on search and filters
   const filteredChampions = (champions || []).filter(champion => {
     if (!champion) return false;
     
     const matchesSearch = (champion.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (champion.title || '').toLowerCase().includes(searchQuery.toLowerCase());
+      (champion.title || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = selectedRole === 'all' || champion.role === selectedRole;
     const matchesRegion = selectedRegion === 'all' || champion.region === selectedRegion;
     
@@ -170,62 +206,64 @@ const ChampionsList = ({
       ) : (
         <div className="px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredChampions.map(champion => (
-            champion.is_locked ? (
-              <div
-                key={champion.id}
-                className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
-              >
-                {/* Background Image */}
-                <img
-                  src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
-                  alt={champion.name}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
-                  }}
-                />
-                
-                {/* Lock overlay */}
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <div className="text-white text-center">
+            <div
+              key={champion.id}
+              className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
+            >
+              {/* Background Image */}
+              <img
+                src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
+                alt={champion.name}
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = `https://via.placeholder.com/400x500/667eea/ffff?text=${champion.name.charAt(0)}`;
+                }}
+              />
+              
+              {/* Lock Overlay for locked champions */}
+              {champion.is_locked && (
+                <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                  <div className="text-center">
                     <div className="text-4xl mb-2">🔒</div>
-                    <p className="text-sm">Locked</p>
+                    <p className="text-white text-sm mb-3">Locked</p>
+                    {user ? (
+                      <button
+                        onClick={() => handleUnlockChampion(champion.id)}
+                        disabled={unlockingChampion === champion.id}
+                        className="btn btn-primary btn-sm"
+                      >
+                        {unlockingChampion === champion.id ? (
+                          <span className="loading loading-spinner loading-xs"></span>
+                        ) : (
+                          `Unlock (${champion.unlock_cost || 30} pts)`
+                        )}
+                      </button>
+                    ) : (
+                      <p className="text-gray-300 text-xs">Login to unlock</p>
+                    )}
                   </div>
                 </div>
-                
-                {/* Bottom bar with champion name */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
-                  <h2 className="text-white font-bold text-lg uppercase tracking-wide">
-                    {champion.name}
-                  </h2>
-                </div>
-              </div>
-            ) : (
-              <Link
-                key={champion.id}
-                to={`/champions/${champion.id}`}
-                className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
-              >
-                {/* Background Image */}
-                <img
-                  src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
-                  alt={champion.name}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
-                  }}
+              )}
+              
+              {/* Link to champion detail (only if unlocked) */}
+              {!champion.is_locked && (
+                <Link
+                  to={`/champions/${champion.id}`}
+                  className="absolute inset-0"
                 />
-                
-                {/* Bottom bar with champion name */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
-                  <h2 className="text-white font-bold text-lg uppercase tracking-wide">
-                    {champion.name}
-                  </h2>
-                </div>
-              </Link>
-            )
+              )}
+              
+              {/* Bottom bar with champion name */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
+                <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+                  {champion.name}
+                </h2>
+                {champion.is_locked && (
+                  <p className="text-gray-300 text-xs">🔒 Locked</p>
+                )}
+              </div>
+            </div>
           ))}
         </div>
       )}
