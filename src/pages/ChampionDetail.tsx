@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../api/axiosInstance';
 import ChampionInfo from '../components/ChampionsInformation';
 import ChampionAbilities from '../components/ChampionsAbility';
@@ -14,16 +15,28 @@ interface ChampionResponse extends BaseResponse<Champion> { }
 
 const ChampionDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [champion, setChampion] = useState<Champion | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // ✅ Helper function to get API endpoint
+  const getApiEndpoint = (championId: string) => {
+    return user ? `/champions/${championId}` : `/champions/public/${championId}`;
+  };
 
   const fetchChampion = async () => {
     if (!id) return;
 
     try {
       setLoading(true);
-      const response = await axiosInstance.get<ChampionResponse>(`/champions/${id}`);
+      
+      // Use different endpoint based on auth status
+      const endpoint = getApiEndpoint(id);
+      console.log('Fetching champion from:', endpoint);
+      
+      const response = await axiosInstance.get<ChampionResponse>(endpoint);
+      
       if (response.data.success) {
         setChampion(response.data.data);
       } else {
@@ -39,7 +52,7 @@ const ChampionDetail = () => {
 
   useEffect(() => {
     fetchChampion();
-  }, [id]);
+  }, [id, user]); // ✅ Include user in dependencies
 
   if (loading) {
     return (

@@ -217,7 +217,7 @@ const ChampionsList = ({
         Showing {filteredChampions.length} of {champions.length} champions
       </div>
 
-      {/* Champions Grid - ΤΟ ΠΑΛΙΟ ΟΜΟΡΦΟ LAYOUT */}
+      {/* Champions Grid */}
       {filteredChampions.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">🔍</div>
@@ -240,7 +240,7 @@ const ChampionsList = ({
                   className="absolute inset-0 w-full h-full object-cover filter grayscale"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
+                    target.src = `https://via.placeholder.com/400x500/667eea/ffff?text=${champion.name.charAt(0)}`;
                   }}
                 />
                 
@@ -276,7 +276,7 @@ const ChampionsList = ({
             ) : (
               <Link
                 key={champion.id}
-                to={`/champions/${champion.id}`}
+                to={user ? `/champions/${champion.id}` : `/champions/public/${champion.id}`}
                 className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
               >
                 {/* Background Image */}
@@ -286,7 +286,7 @@ const ChampionsList = ({
                   className="absolute inset-0 w-full h-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
+                    target.src = `https://via.placeholder.com/400x500/667eea/ffff?text=${champion.name.charAt(0)}`;
                   }}
                 />
                 
