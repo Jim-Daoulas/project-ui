@@ -75,7 +75,9 @@ const ChampionDetail = () => {
             <section>
               <UnlockChampion 
                 champion={champion} 
-                onUnlock={() => window.location.reload()} 
+                onUnlock={() => {
+                  setChampion(prev => prev ? {...prev, is_locked: false} : null);}
+                } 
               />
             </section>
           ) : (
