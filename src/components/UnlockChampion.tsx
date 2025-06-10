@@ -14,7 +14,7 @@ const UnlockChampion = ({ champion, onUnlock }: UnlockChampionProps) => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
-    // Default values
+    // Default values με optional chaining
     const unlockCost = champion.unlock_cost ?? 30;
     const userPoints = user?.points ?? 0;
 
@@ -29,7 +29,12 @@ const UnlockChampion = ({ champion, onUnlock }: UnlockChampionProps) => {
         setSuccess(null);
 
         try {
-            const response = await axiosInstance.post(`/champions/${champion.id}/unlock`);
+            console.log('Attempting to unlock champion:', champion.id);
+            console.log('Request URL:', `/unlocks/champion/${champion.id}`);
+            
+            const response = await axiosInstance.post(`/unlocks/champion/${champion.id}`);
+            
+            console.log('Unlock response:', response.data);
             
             if (response.data.success) {
                 setSuccess(response.data.message);
@@ -37,14 +42,23 @@ const UnlockChampion = ({ champion, onUnlock }: UnlockChampionProps) => {
                     onUnlock(champion);
                 }
                 // Refresh page ή update state
-                window.location.reload();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
             } else {
                 setError(response.data.message || 'Failed to unlock champion');
             }
         } catch (err: any) {
             console.error('Unlock error:', err);
+            console.error('Error response:', err.response?.data);
+            console.error('Error status:', err.response?.status);
+            
             if (err.response?.data?.message) {
                 setError(err.response.data.message);
+            } else if (err.response?.status === 404) {
+                setError('Unlock endpoint not found. Please check API configuration.');
+            } else if (err.response?.status === 401) {
+                setError('Authentication required. Please log in again.');
             } else {
                 setError('Failed to unlock champion. Please try again.');
             }
