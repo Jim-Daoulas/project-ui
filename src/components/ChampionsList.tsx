@@ -225,7 +225,7 @@ const ChampionsList = ({
           <p className="text-gray-400">Try adjusting your search or filters</p>
         </div>
       ) : (
-        <div className="px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="max-w-7xl mx-auto px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredChampions.map(champion => (
             champion.is_locked ? (
               <div
@@ -298,13 +298,6 @@ const ChampionsList = ({
                   </div>
                 </div>
                 
-                {/* Bottom bar with champion name */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
-                  <h2 className="text-white font-bold text-lg uppercase tracking-wide">
-                    {champion.name}
-                  </h2>
-                  <p className="text-gray-300 text-sm">{champion.title}</p>
-                </div>
               </Link>
             )
           ))}
