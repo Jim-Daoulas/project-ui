@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Skin } from '../types/skins';
+import UnlockButton from './UnlockButton';
 
 interface SkinsGalleryProps {
     skins: Skin[];
@@ -8,27 +9,26 @@ interface SkinsGalleryProps {
 }
 
 const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryProps) => {
-    // Αρχικοποίηση με το πρώτο skin ως επιλεγμένο
     const [selectedSkin, setSelectedSkin] = useState<Skin>(skins?.[0] || null);
     const thumbnailsRef = useRef<HTMLDivElement>(null);
 
-    // Συνάρτηση για αλλαγή skin με αυτόματο scroll
+    const handleSkinUnlock = () => {
+        console.log('Skin unlocked successfully!');
+        // Re-fetch skins or update state as needed
+    };
+
     const handleSkinSelect = (skin: Skin) => {
         setSelectedSkin(skin);
         
-        // Βρες το index του επιλεγμένου skin
         const skinIndex = skins.findIndex(s => s.id === skin.id);
         
         if (thumbnailsRef.current && skinIndex !== -1) {
             const container = thumbnailsRef.current;
-            const thumbnailWidth = 96 + 12; // 24 (w-24) * 4 + gap (12px) = 108px περίπου
+            const thumbnailWidth = 96 + 12;
             const containerWidth = container.clientWidth;
             const scrollPosition = skinIndex * thumbnailWidth;
             
-            // Υπολόγισε την ιδανική θέση scroll
             let targetScroll = scrollPosition - (containerWidth / 2) + (thumbnailWidth / 2);
-            
-            // Περιόρισε τα όρια scroll
             const maxScroll = container.scrollWidth - containerWidth;
             targetScroll = Math.max(0, Math.min(targetScroll, maxScroll));
             
@@ -39,13 +39,11 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
         }
     };
 
-    // Navigation functions
     const goToPreviousSkin = () => {
         const currentIndex = skins.findIndex(s => s.id === selectedSkin?.id);
         if (currentIndex > 0) {
             handleSkinSelect(skins[currentIndex - 1]);
         } else {
-            // Loop to last skin
             handleSkinSelect(skins[skins.length - 1]);
         }
     };
@@ -55,7 +53,6 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
         if (currentIndex < skins.length - 1) {
             handleSkinSelect(skins[currentIndex + 1]);
         } else {
-            // Loop to first skin
             handleSkinSelect(skins[0]);
         }
     };
@@ -95,18 +92,32 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    target.src = '/placeholder-skin.jpg'; // Fallback image
+                                    target.src = '/placeholder-skin.jpg';
                                 }}
                             />
-                            {/* Overlay με gradient για καλύτερη ανάγνωση του τίτλου */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                             
-                            {/* Skin Name Overlay */}
                             <div className="absolute bottom-0 left-0 right-0 p-6">
                                 <h3 className="text-white text-2xl font-bold mb-2">
                                     {selectedSkin.name}
                                 </h3>
                             </div>
+
+                            {/* ✅ Unlock Button - διορθωμένο */}
+                            {selectedSkin.is_locked && (
+                                <div className="absolute bottom-6 right-6">
+                                    <UnlockButton 
+                                        type="skin"
+                                        id={selectedSkin.id}
+                                        name={selectedSkin.name}
+                                        cost={selectedSkin.unlock_cost}
+                                        isUnlockedByDefault={selectedSkin.is_unlocked_by_default}
+                                        isUnlocked={!selectedSkin.is_locked}  // ✅ Αντίστροφη λογική
+                                        canUnlock={true}  // ✅ Hardcoded για τώρα
+                                        onSuccess={handleSkinUnlock}
+                                    />
+                                </div>
+                            )}
                         </>
                     ) : (
                         <div className="flex items-center justify-center h-full">
@@ -144,18 +155,16 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
                             className="w-full h-full object-cover"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.src = '/placeholder-skin-thumb.jpg'; // Fallback thumbnail
+                                target.src = '/placeholder-skin-thumb.jpg';
                             }}
                         />
                         
-                        {/* Selected indicator */}
                         {selectedSkin?.id === skin.id && (
                             <div className="absolute inset-0 bg-purple-500/20 flex items-center justify-center">
                                 <div className="w-4 h-4 bg-purple-400 rounded-full border-2 border-white" />
                             </div>
                         )}
                         
-                        {/* Hover overlay */}
                         <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-end">
                             <div className="p-1 w-full">
                                 <p className="text-white text-xs font-medium truncate">
@@ -163,11 +172,20 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
                                 </p>
                             </div>
                         </div>
+
+                        {/* ✅ Lock indicator - διορθωμένο */}
+                        {skin.is_locked && (
+                            <div className="absolute top-1 right-1">
+                                <div className="w-5 h-5 bg-gray-900/80 rounded-full flex items-center justify-center">
+                                    <span className="text-white text-xs">🔒</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>
 
-            {/* Navigation arrows για skin navigation */}
+            {/* Navigation arrows */}
             {skins.length > 1 && (
                 <div className="flex justify-center mt-4 gap-2">
                     <button 
@@ -189,7 +207,6 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
                     </button>
                 </div>
             )}
-
         </div>
     );
 };
