@@ -243,7 +243,13 @@ const ChampionsList = ({
                     target.src = `https://via.placeholder.com/400x500/667eea/ffff?text=${champion.name.charAt(0)}`;
                   }}
                 />
-                
+                {/* Bottom bar with champion name */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
+                  <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+                    {champion.name}
+                  </h2>
+                  <p className="text-gray-300 text-sm">{champion.title}</p>
+                </div>
                 {/* Lock overlay */}
                 <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center">
                   <div className="text-white text-center">
@@ -265,13 +271,7 @@ const ChampionsList = ({
                   </div>
                 </div>
                 
-                {/* Bottom bar with champion name */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
-                  <h2 className="text-white font-bold text-lg uppercase tracking-wide">
-                    {champion.name}
-                  </h2>
-                  <p className="text-gray-300 text-sm">{champion.title}</p>
-                </div>
+                
               </div>
             ) : (
               <Link
