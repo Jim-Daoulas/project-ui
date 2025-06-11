@@ -5,15 +5,21 @@ import ChampionInfo from '../components/ChampionsInformation';
 import ChampionAbilities from '../components/ChampionsAbility';
 import SkinsGallery from '../components/SkinsGallery';
 import { Champion } from '../types/champions';
+import { Skin } from '../types/skins';
 import { BaseResponse } from '../types/helpers';
 import ChampionRework from '../components/ChampionRework';
+import { useAuth } from '../context/AuthContext';
 
 interface ChampionResponse extends BaseResponse<Champion> {}
+interface SkinsResponse extends BaseResponse<Skin[]> {}
 
 const ChampionDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [champion, setChampion] = useState<Champion | null>(null);
+  const [skins, setSkins] = useState<Skin[]>([]);
   const [loading, setLoading] = useState(true);
+  const [skinsLoading, setSkinsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchChampion = async () => {
@@ -21,27 +27,65 @@ const ChampionDetail = () => {
     
     try {
       setLoading(true);
-      const response = await axiosInstance.get<ChampionResponse>(`/champions/${id}`);
+      
+      // ✅ Χρησιμοποιούμε το σωστό endpoint ανάλογα με authentication
+      const endpoint = user ? `/champions/${id}` : `/champions/public/${id}`;
+      const response = await axiosInstance.get<ChampionResponse>(endpoint);
+      
       if (response.data.success) {
         setChampion(response.data.data);
       } else {
         setError('Failed to fetch champion details');
       }
-    } catch (err) {
-      setError('Error fetching champion details');
+    } catch (err: any) {
       console.error('Error fetching champion:', err);
+      
+      // ✅ Καλύτερο error handling
+      if (err.response?.status === 404) {
+        setError('Champion not found');
+      } else if (err.response?.status === 403) {
+        setError('This champion is locked. Please unlock it first.');
+      } else {
+        setError('Error fetching champion details');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchSkins = async () => {
+    if (!id) return;
+    
+    try {
+      setSkinsLoading(true);
+      
+      // ✅ Χρησιμοποιούμε το σωστό endpoint για skins
+      const endpoint = user 
+        ? `/skins/champion/${id}` 
+        : `/skins/public/champion/${id}`;
+      
+      const response = await axiosInstance.get<SkinsResponse>(endpoint);
+      
+      if (response.data.success) {
+        setSkins(response.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching skins:', err);
+      // Δεν κάνουμε error για skins, απλά δεν τα δείχνουμε
+      setSkins([]);
+    } finally {
+      setSkinsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchChampion();
-  }, [id]);
+    fetchSkins();
+  }, [id, user]); // ✅ Προσθέσαμε user dependency
 
-  // Callback function για refresh όταν unlock skin
+  // ✅ Callback function για refresh όταν unlock skin
   const handleSkinUnlocked = () => {
-    fetchChampion(); // Re-fetch champion data με updated skin status
+    fetchSkins(); // Re-fetch μόνο τα skins
   };
 
   if (loading) {
@@ -87,17 +131,33 @@ const ChampionDetail = () => {
             </section>
           )}
           
-          {/* Skins Section with Unlock Support */}
-          {champion.skins && champion.skins.length > 0 && (
-            <section>
-              <SkinsGallery
-                skins={champion.skins}
-                championName={champion.name}
-                showTitle={true}
-                onSkinUnlocked={handleSkinUnlocked}
-              />
-            </section>
-          )}
+          {/* ✅ Skins Section - χρησιμοποιούμε τα skins από το state */}
+          <section>
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl shadow-2xl overflow-hidden">
+              <div className="p-6">
+                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                  🎨 Champion Skins
+                </h3>
+                
+                {skinsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <span className="loading loading-spinner loading-lg"></span>
+                  </div>
+                ) : skins.length > 0 ? (
+                  <SkinsGallery
+                    skins={skins}
+                    championName={champion.name}
+                    showTitle={false}
+                    onSkinUnlocked={handleSkinUnlocked}
+                  />
+                ) : (
+                  <div className="text-center py-8 text-gray-400">
+                    No skins available for this champion
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
 
           {/* Rework Section */}
           {champion.rework && (

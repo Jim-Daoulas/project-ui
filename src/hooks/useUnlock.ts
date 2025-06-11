@@ -27,11 +27,12 @@ export const useUnlock = () => {
     }
   };
 
-  // Unlock champion
+  // ✅ ΔΙΟΡΘΩΣΗ: Unlock champion
   const unlockChampion = async (championId: number): Promise<UnlockResult> => {
     try {
       setLoading(true);
-      const response = await axiosInstance.post(`/unlocks/champion/${championId}`);
+      // ✅ ΔΙΟΡΘΩΣΗ: Σωστό endpoint
+      const response = await axiosInstance.post(`/champions/${championId}/unlock`);
       
       if (response.data.success) {
         // Ενημέρωση local state
@@ -55,11 +56,12 @@ export const useUnlock = () => {
     }
   };
 
-  // Unlock skin
+  // ✅ ΔΙΟΡΘΩΣΗ: Unlock skin
   const unlockSkin = async (skinId: number): Promise<UnlockResult> => {
     try {
       setLoading(true);
-      const response = await axiosInstance.post(`/unlocks/skin/${skinId}`);
+      // ✅ ΔΙΟΡΘΩΣΗ: Σωστό endpoint
+      const response = await axiosInstance.post(`/skins/${skinId}/unlock`);
       
       if (response.data.success) {
         // Ενημέρωση local state

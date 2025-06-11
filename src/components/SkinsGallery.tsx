@@ -30,7 +30,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
         }
     }, [user]);
 
-    // Συνάρτηση για unlock skin
+    // ✅ ΔΙΟΡΘΩΣΗ: Συνάρτηση για unlock skin
     const handleUnlockSkin = async (skin: Skin) => {
         if (!user) {
             alert('Please login to unlock skins');
@@ -40,11 +40,13 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
         setUnlockingStates(prev => ({ ...prev, [skin.id]: true }));
 
         try {
-            const response = await axiosInstance.post(`/champions/skins/${skin.id}/unlock`);
+            // ✅ ΔΙΟΡΘΩΣΗ: Σωστό endpoint
+            const response = await axiosInstance.post(`/skins/${skin.id}/unlock`);
             
             if (response.data.success) {
                 alert(`${skin.name} unlocked successfully!`);
-                setUserPoints(response.data.data.user_points);
+                // ✅ ΔΙΟΡΘΩΣΗ: Σωστό field name
+                setUserPoints(response.data.remaining_points);
                 
                 // Call the callback to refresh parent component
                 if (onSkinUnlocked) {

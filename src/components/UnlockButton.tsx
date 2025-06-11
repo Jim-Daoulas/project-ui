@@ -8,8 +8,8 @@ interface UnlockButtonProps {
   name: string;
   cost: number;
   isUnlockedByDefault?: boolean;
-  isUnlocked?: boolean;        // ✅ NEW: Direct unlock status from API
-  canUnlock?: boolean;         // ✅ NEW: Can unlock status from API
+  isUnlocked?: boolean;    // ✅ NEW: Direct unlock status from API
+  canUnlock?: boolean;    // ✅ NEW: Can unlock status from API
   className?: string;
   onSuccess?: () => void;
 }
@@ -19,8 +19,8 @@ const UnlockButton: React.FC<UnlockButtonProps> = ({
   id,
   cost,
   isUnlockedByDefault = false,
-  isUnlocked,                  // ✅ NEW: Use this instead of hook
-  canUnlock,                   // ✅ NEW: Use this instead of calculating
+  isUnlocked,    // ✅ NEW: Use this instead of hook
+  canUnlock,    // ✅ NEW: Use this instead of calculating
   className = '',
   onSuccess
 }) => {
