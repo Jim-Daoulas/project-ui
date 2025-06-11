@@ -1,22 +1,68 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Skin } from '../types/skins';
-import UnlockButton from './UnlockButton';
+import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../api/axiosInstance';
 
 interface SkinsGalleryProps {
     skins: Skin[];
     championName?: string;
     showTitle?: boolean;
+    onSkinUnlocked?: () => void; // Callback για refresh
 }
 
-const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryProps) => {
+const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }: SkinsGalleryProps) => {
+    const { user } = useAuth();
     const [selectedSkin, setSelectedSkin] = useState<Skin>(skins?.[0] || null);
+    const [unlockingStates, setUnlockingStates] = useState<Record<number, boolean>>({});
+    const [userPoints, setUserPoints] = useState<number>(0);
     const thumbnailsRef = useRef<HTMLDivElement>(null);
 
-    const handleSkinUnlock = () => {
-        console.log('Skin unlocked successfully!');
-        // Re-fetch skins or update state as needed
+    // Fetch user points on component mount
+    useEffect(() => {
+        if (user) {
+            axiosInstance.get('/unlocks/progress')
+                .then(response => {
+                    if (response.data.success) {
+                        setUserPoints(response.data.data.points);
+                    }
+                })
+                .catch(error => console.error('Failed to fetch user progress:', error));
+        }
+    }, [user]);
+
+    // Συνάρτηση για unlock skin
+    const handleUnlockSkin = async (skin: Skin) => {
+        if (!user) {
+            alert('Please login to unlock skins');
+            return;
+        }
+
+        setUnlockingStates(prev => ({ ...prev, [skin.id]: true }));
+
+        try {
+            const response = await axiosInstance.post(`/champions/skins/${skin.id}/unlock`);
+            
+            if (response.data.success) {
+                alert(`${skin.name} unlocked successfully!`);
+                setUserPoints(response.data.data.user_points);
+                
+                // Call the callback to refresh parent component
+                if (onSkinUnlocked) {
+                    onSkinUnlocked();
+                }
+            } else {
+                alert(response.data.message || 'Failed to unlock skin');
+            }
+        } catch (error: any) {
+            console.error('Unlock error:', error);
+            const message = error.response?.data?.message || 'Failed to unlock skin';
+            alert(message);
+        } finally {
+            setUnlockingStates(prev => ({ ...prev, [skin.id]: false }));
+        }
     };
 
+    // Συνάρτηση για αλλαγή skin με αυτόματο scroll
     const handleSkinSelect = (skin: Skin) => {
         setSelectedSkin(skin);
         
@@ -39,24 +85,6 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
         }
     };
 
-    const goToPreviousSkin = () => {
-        const currentIndex = skins.findIndex(s => s.id === selectedSkin?.id);
-        if (currentIndex > 0) {
-            handleSkinSelect(skins[currentIndex - 1]);
-        } else {
-            handleSkinSelect(skins[skins.length - 1]);
-        }
-    };
-
-    const goToNextSkin = () => {
-        const currentIndex = skins.findIndex(s => s.id === selectedSkin?.id);
-        if (currentIndex < skins.length - 1) {
-            handleSkinSelect(skins[currentIndex + 1]);
-        } else {
-            handleSkinSelect(skins[0]);
-        }
-    };
-
     if (!skins || skins.length === 0) {
         return (
             <div className="w-full">
@@ -76,9 +104,11 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
     return (
         <div className="w-full">
             {showTitle && (
-                <h2 className="text-2xl font-bold mb-6 text-white uppercase tracking-wider">
-                    Available Skins
-                </h2>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-white uppercase tracking-wider">
+                        Available Skins
+                    </h2>
+                </div>
             )}
             
             {/* Main Display Image */}
@@ -86,38 +116,78 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
                 <div className="aspect-[16/9] relative">
                     {selectedSkin ? (
                         <>
+                            {/* Locked Overlay */}
+                            {selectedSkin.is_locked && (
+                                <div className="absolute inset-0 bg-black/60 z-10 flex items-center justify-center">
+                                    <div className="text-center">
+                                        <div className="text-6xl mb-4">🔒</div>
+                                        <h3 className="text-white text-xl font-bold mb-2">Skin Locked</h3>
+                                        <p className="text-gray-300 mb-4">
+                                            Unlock cost: {selectedSkin.unlock_cost} points
+                                        </p>
+                                        {user ? (
+                                            <button
+                                                onClick={() => handleUnlockSkin(selectedSkin)}
+                                                disabled={
+                                                    unlockingStates[selectedSkin.id] || 
+                                                    userPoints < selectedSkin.unlock_cost
+                                                }
+                                                className={`
+                                                    px-6 py-2 rounded-lg font-semibold transition-colors
+                                                    ${userPoints >= selectedSkin.unlock_cost
+                                                        ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                                                        : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                                                    }
+                                                `}
+                                            >
+                                                {unlockingStates[selectedSkin.id] 
+                                                    ? 'Unlocking...' 
+                                                    : userPoints >= selectedSkin.unlock_cost
+                                                        ? 'Unlock Skin'
+                                                        : 'Not Enough Points'
+                                                }
+                                            </button>
+                                        ) : (
+                                            <button 
+                                                onClick={() => alert('Please login to unlock skins')}
+                                                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                                            >
+                                                Login to Unlock
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             <img
                                 src={selectedSkin.image_url}
                                 alt={selectedSkin.name}
-                                className="w-full h-full object-cover"
+                                className={`w-full h-full object-cover ${selectedSkin.is_locked ? 'filter grayscale' : ''}`}
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     target.src = '/placeholder-skin.jpg';
                                 }}
                             />
+                            
+                            {/* Gradient overlay */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                             
+                            {/* Skin Name Overlay */}
                             <div className="absolute bottom-0 left-0 right-0 p-6">
-                                <h3 className="text-white text-2xl font-bold mb-2">
-                                    {selectedSkin.name}
-                                </h3>
-                            </div>
-
-                            {/* ✅ Unlock Button - διορθωμένο */}
-                            {selectedSkin.is_locked && (
-                                <div className="absolute bottom-6 right-6">
-                                    <UnlockButton 
-                                        type="skin"
-                                        id={selectedSkin.id}
-                                        name={selectedSkin.name}
-                                        cost={selectedSkin.unlock_cost}
-                                        isUnlockedByDefault={selectedSkin.is_unlocked_by_default}
-                                        isUnlocked={!selectedSkin.is_locked}  // ✅ Αντίστροφη λογική
-                                        canUnlock={true}  // ✅ Hardcoded για τώρα
-                                        onSuccess={handleSkinUnlock}
-                                    />
+                                <div className="flex justify-between items-end">
+                                    <div>
+                                        <h3 className="text-white text-2xl font-bold mb-2 flex items-center gap-2">
+                                            {selectedSkin.name}
+                                            {selectedSkin.is_locked && <span className="text-yellow-400">🔒</span>}
+                                        </h3>
+                                        {selectedSkin.is_locked && (
+                                            <p className="text-yellow-400 text-sm">
+                                                {selectedSkin.unlock_cost} points to unlock
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                            )}
+                            </div>
                         </>
                     ) : (
                         <div className="flex items-center justify-center h-full">
@@ -152,59 +222,81 @@ const SkinsGallery = ({ skins, championName, showTitle = true }: SkinsGalleryPro
                         <img
                             src={skin.image_url}
                             alt={skin.name}
-                            className="w-full h-full object-cover"
+                            className={`w-full h-full object-cover ${skin.is_locked ? 'filter grayscale' : ''}`}
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src = '/placeholder-skin-thumb.jpg';
                             }}
                         />
                         
+                        {/* Locked overlay for thumbnails */}
+                        {skin.is_locked && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                <span className="text-yellow-400 text-sm">🔒</span>
+                            </div>
+                        )}
+                        
+                        {/* Selected indicator */}
                         {selectedSkin?.id === skin.id && (
                             <div className="absolute inset-0 bg-purple-500/20 flex items-center justify-center">
                                 <div className="w-4 h-4 bg-purple-400 rounded-full border-2 border-white" />
                             </div>
                         )}
                         
+                        {/* Hover overlay with skin name and unlock cost */}
                         <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-end">
                             <div className="p-1 w-full">
                                 <p className="text-white text-xs font-medium truncate">
                                     {skin.name}
                                 </p>
+                                {skin.is_locked && (
+                                    <p className="text-yellow-400 text-xs">
+                                        {skin.unlock_cost}💰
+                                    </p>
+                                )}
                             </div>
                         </div>
-
-                        {/* ✅ Lock indicator - διορθωμένο */}
-                        {skin.is_locked && (
-                            <div className="absolute top-1 right-1">
-                                <div className="w-5 h-5 bg-gray-900/80 rounded-full flex items-center justify-center">
-                                    <span className="text-white text-xs">🔒</span>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 ))}
             </div>
 
-            {/* Navigation arrows */}
-            {skins.length > 1 && (
+            {/* Navigation arrows για manual scrolling */}
+            {skins.length > 5 && (
                 <div className="flex justify-center mt-4 gap-2">
                     <button 
-                        onClick={goToPreviousSkin}
-                        className="px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
-                        title="Previous skin"
+                        onClick={() => {
+                            if (thumbnailsRef.current) {
+                                thumbnailsRef.current.scrollBy({ left: -200, behavior: 'smooth' });
+                            }
+                        }}
+                        className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
                     >
                         ←
                     </button>
-                    <span className="flex items-center px-4 text-gray-400 text-sm">
-                        {skins.findIndex(s => s.id === selectedSkin?.id) + 1} / {skins.length}
-                    </span>
                     <button 
-                        onClick={goToNextSkin}
-                        className="px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
-                        title="Next skin"
+                        onClick={() => {
+                            if (thumbnailsRef.current) {
+                                thumbnailsRef.current.scrollBy({ left: 200, behavior: 'smooth' });
+                            }
+                        }}
+                        className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
                     >
                         →
                     </button>
+                </div>
+            )}
+
+            {/* Unlock Summary */}
+            {user && (
+                <div className="mt-6 bg-gray-800/50 rounded-lg p-4">
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-400">
+                            Unlocked: {skins.filter(s => !s.is_locked).length} / {skins.length} skins
+                        </span>
+                        <span className="text-gray-400">
+                            Total unlock cost: {skins.filter(s => s.is_locked).reduce((sum, s) => sum + s.unlock_cost, 0)} points
+                        </span>
+                    </div>
                 </div>
             )}
         </div>

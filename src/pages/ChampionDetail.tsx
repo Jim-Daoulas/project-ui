@@ -1,42 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../api/axiosInstance';
 import ChampionInfo from '../components/ChampionsInformation';
 import ChampionAbilities from '../components/ChampionsAbility';
 import SkinsGallery from '../components/SkinsGallery';
-import UnlockChampion from '../components/UnlockChampion';
 import { Champion } from '../types/champions';
 import { BaseResponse } from '../types/helpers';
 import ChampionRework from '../components/ChampionRework';
 
-// Types based on your structure
-interface ChampionResponse extends BaseResponse<Champion> { }
+interface ChampionResponse extends BaseResponse<Champion> {}
 
 const ChampionDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
   const [champion, setChampion] = useState<Champion | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Helper function to get API endpoint
-  const getApiEndpoint = (championId: string) => {
-    return user ? `/champions/${championId}` : `/champions/public/${championId}`;
-  };
-
   const fetchChampion = async () => {
     if (!id) return;
-
+    
     try {
       setLoading(true);
-      
-      // Use different endpoint based on auth status
-      const endpoint = getApiEndpoint(id);
-      console.log('Fetching champion from:', endpoint);
-      
-      const response = await axiosInstance.get<ChampionResponse>(endpoint);
-      
+      const response = await axiosInstance.get<ChampionResponse>(`/champions/${id}`);
       if (response.data.success) {
         setChampion(response.data.data);
       } else {
@@ -52,7 +37,12 @@ const ChampionDetail = () => {
 
   useEffect(() => {
     fetchChampion();
-  }, [id, user]); // ✅ Include user in dependencies
+  }, [id]);
+
+  // Callback function για refresh όταν unlock skin
+  const handleSkinUnlocked = () => {
+    fetchChampion(); // Re-fetch champion data με updated skin status
+  };
 
   if (loading) {
     return (
@@ -79,67 +69,48 @@ const ChampionDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-      {/* Main Content */}
+      {/* Main Content - All Sections */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto space-y-12">
-
-          {/* Check if champion is locked */}
-          {champion.is_locked ? (
+          
+          {/* Champion Info Section */}
+          <section>
+            <ChampionInfo champion={champion} />
+          </section>
+          
+          {/* Ability Section */}
+          {champion.abilities && champion.abilities.length > 0 && (
             <section>
-              <UnlockChampion
-                champion={champion}
-                onUnlock={async () => {
-                  // Re-fetch champion data after unlock
-                  try {
-                    console.log('Refetching champion data after unlock...');
-                    await fetchChampion();
-                  } catch (err) {
-                    console.error('Error refetching champion:', err);
-                  }
-                }}
+              <ChampionAbilities
+                abilities={champion.abilities}
               />
             </section>
-          ) : (
-            <>
-              {/* Champion Info Section */}
-              <section>
-                <ChampionInfo champion={champion} />
-              </section>
+          )}
+          
+          {/* Skins Section with Unlock Support */}
+          {champion.skins && champion.skins.length > 0 && (
+            <section>
+              <SkinsGallery
+                skins={champion.skins}
+                championName={champion.name}
+                showTitle={true}
+                onSkinUnlocked={handleSkinUnlocked}
+              />
+            </section>
+          )}
 
-              {/* Ability Section */}
-              {champion.abilities && champion.abilities.length > 0 && (
-                <section>
-                  <ChampionAbilities
-                    abilities={champion.abilities}
-                  />
-                </section>
-              )}
-
-              {/* Skins Section */}
-              {champion.skins && champion.skins.length > 0 && (
-                <section>
-                  <SkinsGallery
-                    skins={champion.skins}
-                    championName={champion.name}
-                    showTitle={true}
-                  />
-                </section>
-              )}
-
-              {/* Rework Section */}
-              {champion.rework && (
-                <section>
-                  <ChampionRework
-                    champion={champion}
-                    rework={champion.rework}
-                  />
-                </section>
-              )}
-            </>
+          {/* Rework Section */}
+          {champion.rework && (
+            <section>
+              <ChampionRework 
+                champion={champion} 
+                rework={champion.rework} 
+              />
+            </section>
           )}
         </div>
       </div>
-
+      
       {/* Back to Top Button */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
