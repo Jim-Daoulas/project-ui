@@ -104,14 +104,15 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                                 <td className="px-4 py-3 text-center">
                                                     <span className="text-red-400 font-bold text-lg">{champion.stats.hp || 0}</span>
                                                 </td>
-                                            </tr>
-                                            <tr className="hover:bg-gray-700/30 transition-colors">
                                                 <td className="px-4 py-3 flex items-center gap-2">
                                                     <span className="text-white font-medium">Mana Points</span>
                                                 </td>
                                                 <td className="px-4 py-3 text-center">
                                                     <span className="text-blue-400 font-bold text-lg">{champion.stats.mana || 0}</span>
                                                 </td>
+                                            </tr>
+                                            <tr className="hover:bg-gray-700/30 transition-colors">
+                                                
                                             </tr>
                                             <tr className="hover:bg-gray-700/30 transition-colors">
                                                 <td className="px-4 py-3 flex items-center gap-2">
