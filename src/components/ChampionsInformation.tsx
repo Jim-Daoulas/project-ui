@@ -136,14 +136,6 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                                 <td className="px-4 py-3 text-center">
                                                     <span className="text-purple-400 font-bold text-lg">{champion.stats.ability_power || 0}</span>
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    <div className="w-full bg-gray-600 rounded-full h-2">
-                                                        <div 
-                                                            className="bg-gradient-to-r from-purple-400 to-purple-600 h-2 rounded-full transition-all duration-500"
-                                                            style={{ width: `${Math.min(((champion.stats.ability_power || 0) / 100) * 100, 100)}%` }}
-                                                        />
-                                                    </div>
-                                                </td>
                                             </tr>
                                             
                                             {/* Additional Stats if they exist */}
