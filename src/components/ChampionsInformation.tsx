@@ -92,9 +92,6 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                         <th className="px-4 py-3 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">
                                             Value
                                         </th>
-                                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                                            Visual
-                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-700">
@@ -102,75 +99,38 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                         <>
                                             <tr className="hover:bg-gray-700/30 transition-colors">
                                                 <td className="px-4 py-3 flex items-center gap-2">
-                                                    <span className="text-lg">❤️</span>
                                                     <span className="text-white font-medium">Health Points</span>
                                                 </td>
                                                 <td className="px-4 py-3 text-center">
                                                     <span className="text-red-400 font-bold text-lg">{champion.stats.hp || 0}</span>
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    <div className="w-full bg-gray-600 rounded-full h-2">
-                                                        <div 
-                                                            className="bg-gradient-to-r from-red-400 to-red-600 h-2 rounded-full transition-all duration-500"
-                                                            style={{ width: `${Math.min(((champion.stats.hp || 0) / 150) * 100, 100)}%` }}
-                                                        />
-                                                    </div>
-                                                </td>
                                             </tr>
                                             <tr className="hover:bg-gray-700/30 transition-colors">
                                                 <td className="px-4 py-3 flex items-center gap-2">
-                                                    <span className="text-lg">💙</span>
                                                     <span className="text-white font-medium">Mana Points</span>
                                                 </td>
                                                 <td className="px-4 py-3 text-center">
                                                     <span className="text-blue-400 font-bold text-lg">{champion.stats.mana || 0}</span>
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    <div className="w-full bg-gray-600 rounded-full h-2">
-                                                        <div 
-                                                            className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-500"
-                                                            style={{ width: `${Math.min(((champion.stats.mana || 0) / 150) * 100, 100)}%` }}
-                                                        />
-                                                    </div>
-                                                </td>
                                             </tr>
                                             <tr className="hover:bg-gray-700/30 transition-colors">
                                                 <td className="px-4 py-3 flex items-center gap-2">
-                                                    <span className="text-lg">⚔️</span>
                                                     <span className="text-white font-medium">Attack Damage</span>
                                                 </td>
                                                 <td className="px-4 py-3 text-center">
                                                     <span className="text-orange-400 font-bold text-lg">{champion.stats.attack || 0}</span>
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    <div className="w-full bg-gray-600 rounded-full h-2">
-                                                        <div 
-                                                            className="bg-gradient-to-r from-orange-400 to-orange-600 h-2 rounded-full transition-all duration-500"
-                                                            style={{ width: `${Math.min(((champion.stats.attack || 0) / 100) * 100, 100)}%` }}
-                                                        />
-                                                    </div>
-                                                </td>
                                             </tr>
                                             <tr className="hover:bg-gray-700/30 transition-colors">
                                                 <td className="px-4 py-3 flex items-center gap-2">
-                                                    <span className="text-lg">🛡️</span>
                                                     <span className="text-white font-medium">Defense</span>
                                                 </td>
                                                 <td className="px-4 py-3 text-center">
                                                     <span className="text-green-400 font-bold text-lg">{champion.stats.defense || 0}</span>
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    <div className="w-full bg-gray-600 rounded-full h-2">
-                                                        <div 
-                                                            className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-500"
-                                                            style={{ width: `${Math.min(((champion.stats.defense || 0) / 100) * 100, 100)}%` }}
-                                                        />
-                                                    </div>
-                                                </td>
                                             </tr>
                                             <tr className="hover:bg-gray-700/30 transition-colors">
                                                 <td className="px-4 py-3 flex items-center gap-2">
-                                                    <span className="text-lg">🔮</span>
                                                     <span className="text-white font-medium">Ability Power</span>
                                                 </td>
                                                 <td className="px-4 py-3 text-center">

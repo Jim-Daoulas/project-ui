@@ -3,7 +3,7 @@ import axios from 'axios';
 const axiosInstance = axios.create({
   baseURL: import.meta.env.PROD 
     ? "https://web-production-a6b6e.up.railway.app"
-    : "http://localhost/new-mk1-project-api/public",
+    : "http://localhost/new-mki-project-api/public",
 });
 
 axiosInstance.interceptors.request.use((config) => {
