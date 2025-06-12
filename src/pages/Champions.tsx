@@ -17,7 +17,7 @@ const Champions = () => {
         {/* Preview Champions - μόνο 3 unlocked */}
         <div className="pb-16">         
           <ChampionsList 
-            showFilters={false}
+            showFilters={true}
             showTitle={false}
           />
         </div>
