@@ -24,21 +24,22 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
         if (!champion.stats || typeof champion.stats !== 'object') return '0';
         return String(champion.stats[key] || '0');
     };
-    const mp = getStat('mp');
+    const mana_regen = getStat('Mana_regen');
     const energy = getStat('Secondary_bar');
+    const hasMp = mana_regen !== '0' && mana_regen !== '';
     // Stats configuration for the gaming-style display
     const mainStats = [
         {
             left: { key: 'hp', label: '❤️ HP', range: getStat('hp') },
-            right: {
-                key: mp != null ? 'mp' : 'Secondary_bar',
-                label: mp != null ? '💧 MP' : '⚡ Secondary Bar',
-                range: mp != null ? mp : energy
-            }
+            right: { key: 'mp', label: '💧 MP', range: getStat('mp') },
         },
         {
             left: { key: 'Health_Regen', label: '💚 HP5', range: getStat('Health_Regen') },
-            right: { key: 'Mana_regen', label: '💙 MP5', range: getStat('Mana_regen') }
+            right: {
+                key: hasMp ? 'Mana_regen' : 'Secondary_bar',
+                label: hasMp ? '💙 MP5' : '🩸 Secondary Bar',
+                range: hasMp ? mana_regen : energy
+            }
         },
         {
             left: { key: 'Armor', label: '🛡️ AR', range: getStat('Armor') },
