@@ -11,15 +11,7 @@ const Champions = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
         {/* Hero Section */}
         <div className="text-center py-16 px-8">
-          <h1 className="text-6xl font-bold text-white mb-4">
-            League of Legends
-          </h1>
-          <h2 className="text-4xl font-bold text-blue-300 mb-6">
-            Rework Vault
-          </h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Discover reimagined champions with fresh abilities, updated lore, and exciting gameplay mechanics.
-          </p>
+          <h1 className="text-3xl font-bold text-white">Champion Collection</h1>
         </div>
 
         {/* Preview Champions - μόνο 3 unlocked */}
@@ -35,7 +27,7 @@ const Champions = () => {
 
   // ✅ Αν είναι logged user - δείξε full champions list
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
       {/* User Header */}
       <div className="bg-black/20 p-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">

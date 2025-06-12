@@ -211,12 +211,6 @@ const ChampionsList = ({
           </div>
         </div>
       )}
-
-      {/* Results Count */}
-      <div className="mb-6 px-8 text-sm text-gray-300">
-        Showing {filteredChampions.length} of {champions.length} champions
-      </div>
-
       {/* Champions Grid */}
       {filteredChampions.length === 0 ? (
         <div className="text-center py-12">
