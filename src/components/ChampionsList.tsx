@@ -108,7 +108,11 @@ const ChampionsList = ({
     const matchesRegion = selectedRegion === 'all' || champion.region === selectedRegion;
     
     return matchesSearch && matchesRole && matchesRegion;
-  }).slice(0, limit);
+  })
+  .sort((a, b) => {
+  // Αλφαβητική ταξινόμηση βάσει ονόματος
+  return a.name.localeCompare(b.name);
+}).slice(0, limit);
 
   // Get unique roles and regions for filters
   const roles = [...new Set((champions || []).map(champion => champion?.role).filter(Boolean))];
