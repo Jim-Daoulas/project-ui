@@ -19,9 +19,11 @@ function Header() {
     return (
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 navbar bg-base-100 shadow-sm">
         <div className="flex-1">
-        <Link to="/">
-                 <h1  className="text-color-white"> League of Legends Vault</h1>
-        </Link>
+        <Link to="/" className="text-white hover:text-purple-300 transition-colors">
+        <h1 className="text-2xl font-bold">
+            League of Legends Vault
+        </h1>
+    </Link>
         </div>
         <div className="flex gap-2 items-center">
         {/* Points Display - μόνο για logged in users */}
