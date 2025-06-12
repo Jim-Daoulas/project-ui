@@ -30,7 +30,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
     const mainStats = [
         {
             left: { key: 'hp', label: '❤️ HP', value: getStat('hp'), range: `${getStat('hp')} – ${Math.round(getStat('hp') * 1.8)}` },
-            right: { key: 'mana', label: '💧 MP', value: getStat('mana'), range: `${getStat('mana')} – ${Math.round(getStat('mana') * 1.6)}` }
+            right: { key: 'mana', label: '💧 MP', value: getStat('mp'), range: `${getStat('mp')} – ${Math.round(getStat('mp') * 1.6)}` }
         },
         {
             left: { key: 'Health_Regen', label: '💚 HP5', value: getStat('Health_Regen'), range: `${getStat('Health_Regen')} – ${(getStat('Health_Regen') * 1.5).toFixed(1)}` },
@@ -130,7 +130,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                                 <span className="text-white font-medium text-sm">
                                                     {statPair.left.label}
                                                 </span>
-                                                <span className="text-yellow-300 font-bold">
+                                                <span className="text-yellow-600 font-bold">
                                                     {statPair.left.range}
                                                 </span>
                                             </div>
