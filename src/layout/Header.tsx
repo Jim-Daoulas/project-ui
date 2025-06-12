@@ -18,9 +18,9 @@ function Header() {
   console.log("User properties:", user ? Object.keys(user) : 'no user');
     return (
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 navbar bg-base-100 shadow-sm">
-        <div className="flex-1 text-color-white">
+        <div className="flex-1">
         <Link to="/">
-                  League of Legends Vault
+                 <h1  className="text-color-white"> League of Legends Vault</h1>
         </Link>
         </div>
         <div className="flex gap-2 items-center">
