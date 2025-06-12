@@ -17,12 +17,10 @@ function Header() {
   console.log("User in Header:", user);
   console.log("User properties:", user ? Object.keys(user) : 'no user');
     return (
-        <div className="bg-gradient-to-br from-gray-900 to-gray-800 navbar bg-base-100 shadow-sm">
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 navbar bg-base-100 shadow-sm sticky top-0 z-50">
         <div className="flex-1">
         <Link to="/" className="text-white hover:text-purple-300 transition-colors">
-        <h1 className="text-2xl font-bold">
             League of Legends Vault
-        </h1>
     </Link>
         </div>
         <div className="flex gap-2 items-center">
