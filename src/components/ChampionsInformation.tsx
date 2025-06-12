@@ -115,9 +115,6 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                             <div className="bg-gradient-to-r from-yellow-600 to-yellow-700 text-black px-2 py-1 rounded text-xs font-bold">
                                 Level: 1-18
                             </div>
-                            <button className="ml-auto text-gray-400 hover:text-white text-sm">
-                                Edit
-                            </button>
                         </div>
                         
                         <div className="border border-yellow-600/40 overflow-hidden">
