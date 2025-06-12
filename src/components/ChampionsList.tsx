@@ -20,7 +20,6 @@ interface ChampionsListProps {
 
 const ChampionsList = ({ 
   showFilters = true, 
-  showTitle = true, 
   limit 
 }: ChampionsListProps) => {
   const [champions, setChampions] = useState<Champion[]>([]);

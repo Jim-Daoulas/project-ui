@@ -18,7 +18,6 @@ const Champions = () => {
         <div className="pb-16">         
           <ChampionsList 
             showFilters={true}
-            showTitle={false}
           />
         </div>
       </div>
@@ -50,7 +49,6 @@ const Champions = () => {
       <div className="pb-8">
         <ChampionsList 
           showFilters={true}
-          showTitle={false}
         />
       </div>
     </div>
