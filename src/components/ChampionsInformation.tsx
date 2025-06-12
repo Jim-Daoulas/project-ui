@@ -5,7 +5,7 @@ interface ChampionInfoProps {
 }
 
 const ChampionInfo = ({ champion }: ChampionInfoProps) => {
-    
+
     if (!champion) {
         return (
             <div className="bg-gray-800 rounded-lg p-6">
@@ -24,12 +24,17 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
         if (!champion.stats || typeof champion.stats !== 'object') return '0';
         return String(champion.stats[key] || '0');
     };
-
+    const mp = getStat('mp');
+    const energy = getStat('Secondary_bar');
     // Stats configuration for the gaming-style display
     const mainStats = [
         {
             left: { key: 'hp', label: '❤️ HP', range: getStat('hp') },
-            right: { key: 'mp', label: '💧 MP', range: getStat('mp') }
+            right: {
+                key: mp != null ? 'mp' : 'Secondary_bar',
+                label: mp != null ? '💧 MP' : '⚡ Secondary Bar',
+                range: mp != null ? mp : energy
+            }
         },
         {
             left: { key: 'Health_Regen', label: '💚 HP5', range: getStat('Health_Regen') },
@@ -77,7 +82,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                         <h2 className="text-lg text-gray-300 mb-3 italic">
                             {champion.title}
                         </h2>
-                        
+
                         {/* Role and Region */}
                         <div className="flex gap-4 mb-4">
                             <div className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-medium">
@@ -95,7 +100,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
             {/* Content Section - Grid Layout */}
             <div className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    
+
                     {/* Left Column - Champion Lore */}
                     <div>
                         <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -116,7 +121,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                 Level: 1-18
                             </div>
                         </div>
-                        
+
                         <div className="border border-yellow-600/40 overflow-hidden">
                             {mainStats.map((statPair, index) => (
                                 <div key={index} className="border-b border-yellow-600/20 last:border-b-0">
@@ -132,7 +137,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                                 </span>
                                             </div>
                                         </div>
-                                        
+
                                         {/* Right Stat */}
                                         <div className="p-3">
                                             <div className="flex items-center justify-between">
@@ -149,7 +154,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                             ))}
                         </div>
                     </div>
-                </div>                
+                </div>
             </div>
         </div>
     );
