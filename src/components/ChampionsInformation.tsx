@@ -29,19 +29,19 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
     // Stats configuration for the gaming-style display
     const mainStats = [
         {
-            left: { key: 'hp', label: '❤️ HP', value: getStat('hp'), range: `${getStat('hp')} – ${Math.round(getStat('hp') * 1.8)}` },
-            right: { key: 'mana', label: '💧 MP', value: getStat('mp'), range: `${getStat('mp')} – ${Math.round(getStat('mp') * 1.6)}` }
+            left: { key: 'hp', label: '❤️ HP', value: getStat('hp'), range: `${getStat('hp')} – ${Math.round(getStat('hp'))}` },
+            right: { key: 'mana', label: '💧 MP', value: getStat('mp'), range: `${getStat('mp')} – ${Math.round(getStat('mp') )}` }
         },
         {
-            left: { key: 'Health_Regen', label: '💚 HP5', value: getStat('Health_Regen'), range: `${getStat('Health_Regen')} – ${(getStat('Health_Regen') * 1.5).toFixed(1)}` },
-            right: { key: 'Mana_regen', label: '💙 MP5', value: getStat('Mana_regen'), range: `${getStat('Mana_regen')} – ${(getStat('Mana_regen') * 2.1).toFixed(1)}` }
+            left: { key: 'Health_Regen', label: '💚 HP5', value: getStat('Health_Regen'), range: `${getStat('Health_Regen')} – ${(getStat('Health_Regen') )}` },
+            right: { key: 'Mana_regen', label: '💙 MP5', value: getStat('Mana_regen'), range: `${getStat('Mana_regen')} – ${(getStat('Mana_regen'))}` }
         },
         {
-            left: { key: 'Armor', label: '🛡️ AR', value: getStat('Armor'), range: `${getStat('Armor')} – ${(getStat('Armor') + 70).toFixed(1)}` },
-            right: { key: 'attack', label: '⚔️ AD', value: getStat('attack'), range: `${getStat('attack')} – ${Math.round(getStat('attack') + 45)}` }
+            left: { key: 'Armor', label: '🛡️ AR', value: getStat('Armor'), range: `${getStat('Armor')} – ${(getStat('Armor'))}` },
+            right: { key: 'attack', label: '⚔️ AD', value: getStat('Αttack'), range: `${getStat('Αttack')} – ${Math.round(getStat('Αttack'))}` }
         },
         {
-            left: { key: 'Magic_Resistance', label: '🔮 MR', value: getStat('Magic_Resistance'), range: `${getStat('Magic_Resistance')} – ${(getStat('Magic_Resistance') + 20).toFixed(1)}` },
+            left: { key: 'Magic_Resistance', label: '🔮 MR', value: getStat('Magic_Resistance'), range: `${getStat('Magic_Resistance')} – ${(getStat('Magic_Resistance'))}` },
             right: { key: 'Critical_Damage', label: '💥 Crit. DMG', value: getStat('Critical_Damage'), range: `${getStat('Critical_Damage')}%` }
         },
         {
@@ -142,7 +142,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                                 <span className="text-white font-medium text-sm">
                                                     {statPair.right.label}
                                                 </span>
-                                                <span className="text-purple-900 font-bold">
+                                                <span className="text-yellow-600 font-bold">
                                                     {statPair.right.range}
                                                 </span>
                                             </div>
