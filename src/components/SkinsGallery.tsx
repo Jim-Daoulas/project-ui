@@ -11,7 +11,7 @@ interface SkinsGalleryProps {
 }
 
 const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }: SkinsGalleryProps) => {
-    const { user } = useAuth();
+    const { user, updateUserPoints } = useAuth();
     const [selectedSkin, setSelectedSkin] = useState<Skin>(skins?.[0] || null);
     const [unlockingStates, setUnlockingStates] = useState<Record<number, boolean>>({});
     const [userPoints, setUserPoints] = useState<number>(0);
@@ -45,8 +45,10 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
             
             if (response.data.success) {
                 alert(`${skin.name} unlocked successfully!`);
-                // ✅ ΔΙΟΡΘΩΣΗ: Σωστό field name
-                setUserPoints(response.data.remaining_points);
+                
+                const newPoints = response.data.data.user_points; // Από το backend response
+                updateUserPoints(newPoints);
+                setUserPoints(newPoints);
                 
                 // Call the callback to refresh parent component
                 if (onSkinUnlocked) {

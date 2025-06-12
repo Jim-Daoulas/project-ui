@@ -29,8 +29,8 @@ const ChampionsList = ({
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
   
-  const { user } = useAuth();
-  const { userProgress, unlockChampion } = useUnlock();
+  const { user, updateUserPoints } = useAuth(); // ✅ Πρόσθεσε updateUserPoints
+  const { userProgress } = useUnlock(); // ✅ Αφαίρεσε unlockChampion από εδώ
 
   // ✅ Fetch champions with unlock functionality
   const fetchChampions = async () => {
@@ -64,9 +64,9 @@ const ChampionsList = ({
     }
   };
 
-  // ✅ Handle unlock champion
+  // ✅ Handle unlock champion με direct API call
   const handleUnlockChampion = async (championId: number, event: React.MouseEvent) => {
-    event.preventDefault(); // Prevent any navigation
+    event.preventDefault();
     event.stopPropagation();
     
     if (!user) {
@@ -74,23 +74,30 @@ const ChampionsList = ({
       return;
     }
 
-    if (!userProgress || userProgress.points < (champions.find(c => c.id === championId)?.unlock_cost || 0)) {
+    const champion = champions.find(c => c.id === championId);
+    if (!champion) return;
+
+    if (!userProgress || userProgress.points < (champion.unlock_cost || 0)) {
       alert('Not enough points to unlock this champion');
       return;
     }
 
     try {
-      const result = await unlockChampion(championId);
+      const response = await axiosInstance.post(`/unlocks/champion/${championId}`);
       
-      if (result.success) {
+      if (response.data.success) {
+        // ✅ Ενημέρωσε το AuthContext με τους νέους πόντους
+        updateUserPoints(response.data.data.user_points);
+        
         await fetchChampions(); // Re-fetch to update UI
-        alert(result.message || 'Champion unlocked successfully!');
+        alert(`${champion.name} unlocked successfully!`);
       } else {
-        alert(result.message || 'Failed to unlock champion');
+        alert(response.data.message || 'Failed to unlock champion');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error unlocking champion:', error);
-      alert('An error occurred while unlocking the champion');
+      const message = error.response?.data?.message || 'Failed to unlock champion';
+      alert(message);
     }
   };
 
@@ -110,9 +117,9 @@ const ChampionsList = ({
     return matchesSearch && matchesRole && matchesRegion;
   })
   .sort((a, b) => {
-  // Αλφαβητική ταξινόμηση βάσει ονόματος
-  return a.name.localeCompare(b.name);
-}).slice(0, limit);
+    // Αλφαβητική ταξινόμηση βάσει ονόματος
+    return a.name.localeCompare(b.name);
+  }).slice(0, limit);
 
   // Get unique roles and regions for filters
   const roles = [...new Set((champions || []).map(champion => champion?.role).filter(Boolean))];
@@ -192,6 +199,7 @@ const ChampionsList = ({
           </div>
         </div>
       )}
+      
       {/* Champions Grid */}
       {filteredChampions.length === 0 ? (
         <div className="text-center py-12">
@@ -263,7 +271,7 @@ const ChampionsList = ({
                     target.src = `https://via.placeholder.com/400x500/667eea/ffff?text=${champion.name.charAt(0)}`;
                   }}
                 />
-                 <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
+                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
                   <h2 className="text-white font-bold text-lg uppercase tracking-wide">
                     {champion.name}
                   </h2>
@@ -275,7 +283,6 @@ const ChampionsList = ({
                     <p className="text-sm font-semibold">View Details</p>
                   </div>
                 </div>
-                
               </Link>
             )
           ))}
