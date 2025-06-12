@@ -142,7 +142,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                                 <span className="text-white font-medium text-sm">
                                                     {statPair.right.label}
                                                 </span>
-                                                <span className="text-yellow-300 font-bold">
+                                                <span className="text-purple-900 font-bold">
                                                     {statPair.right.range}
                                                 </span>
                                             </div>
