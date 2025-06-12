@@ -19,34 +19,49 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
         );
     }
 
-    // Helper function to safely get stat values
-    const getStat = (key: string): number => {
-        if (!champion.stats || typeof champion.stats !== 'object') return 0;
-        const value = champion.stats[key];
-        return typeof value === 'number' ? value : parseInt(value) || 0;
+    // Helper function to safely get stat values and handle ranges
+    const getStat = (key: string): { value: number, range: string } => {
+        if (!champion.stats || typeof champion.stats !== 'object') return { value: 0, range: '0' };
+        
+        const rawValue = champion.stats[key];
+        if (!rawValue) return { value: 0, range: '0' };
+        
+        // Convert to string to handle both numbers and strings
+        const stringValue = String(rawValue);
+        
+        // If it contains a dash or range, return as is
+        if (stringValue.includes('–') || stringValue.includes('-')) {
+            // Extract first number for calculations
+            const firstNumber = parseInt(stringValue.split(/[–-]/)[0].trim()) || 0;
+            return { value: firstNumber, range: stringValue };
+        }
+        
+        // If it's a single number
+        const numValue = parseInt(stringValue) || 0;
+        return { value: numValue, range: stringValue };
     };
 
     // Stats configuration for the gaming-style display
     const mainStats = [
         {
-            left: { key: 'hp', label: '❤️ HP', value: getStat('hp'), range: `${getStat('hp')}` },
-            right: { key: 'mana', label: '💧 MP', value: getStat('mp'), range: `${getStat('mp')}` }
+            left: { key: 'hp', label: '❤️ HP', ...getStat('hp') },
+            right: { key: 'mp', label: '💧 MP', ...getStat('mp') }
         },
         {
-            left: { key: 'Health_Regen', label: '💚 HP5', value: getStat('Health_Regen'), range: `${getStat('Health_Regen')}` },
-            right: { key: 'Mana_regen', label: '💙 MP5', value: getStat('Mana_regen'), range: `${getStat('Mana_regen')}` }
+            left: { key: 'Health_Regen', label: '💚 HP5', ...getStat('Health_Regen') },
+            right: { key: 'Mana_regen', label: '💙 MP5', ...getStat('Mana_regen') }
         },
         {
-            left: { key: 'Armor', label: '🛡️ AR', value: getStat('Armor'), range: `${getStat('Armor')} ` },
-            right: { key: 'attack', label: '⚔️ AD', value: getStat('Αttack'), range: `${getStat('Αttack')}` }
+            left: { key: 'Armor', label: '🛡️ AR', ...getStat('Armor') },
+            right: { key: 'Attack', label: '⚔️ AD', ...getStat('Attack') }
         },
         {
-            left: { key: 'Magic_Resistance', label: '🔮 MR', value: getStat('Magic_Resistance'), range: `${getStat('Magic_Resistance')}` },
-            right: { key: 'Critical_Damage', label: '💥 Crit. DMG', value: getStat('Critical_Damage'), range: `${getStat('Critical_Damage')}%` }
+            left: { key: 'Magic_Resistance', label: '🔮 MR', ...getStat('Magic_Resistance') },
+            right: { key: 'Critical_Damage', label: '💥 Crit. DMG', ...getStat('Critical_Damage') }
         },
         {
-            left: { key: 'Move_Speed', label: '💨 MS', value: getStat('Move_Speed'), range: `${getStat('Move_Speed')}` },
-            right: { key: 'Attack_Range', label: '🎯 Attack range', value: getStat('Attack_Range'), range: `${getStat('Attack_Range')}` }
+            left: { key: 'Move_Speed', label: '💨 MS', ...getStat('Move_Speed') },
+            right: { key: 'Attack_Range', label: '🎯 Attack range', ...getStat('Attack_Range') }
         }
     ];
 
@@ -120,7 +135,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                             </button>
                         </div>
                         
-                        <div className="border border-yellow-600/40 overflow-hidden">
+                        <div className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 rounded-lg border border-yellow-600/40 overflow-hidden">
                             {mainStats.map((statPair, index) => (
                                 <div key={index} className="border-b border-yellow-600/20 last:border-b-0">
                                     <div className="grid grid-cols-2">
@@ -130,7 +145,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                                 <span className="text-white font-medium text-sm">
                                                     {statPair.left.label}
                                                 </span>
-                                                <span className="text-yellow-600 font-bold">
+                                                <span className="text-purple-900 font-bold">
                                                     {statPair.left.range}
                                                 </span>
                                             </div>
@@ -142,7 +157,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                                 <span className="text-white font-medium text-sm">
                                                     {statPair.right.label}
                                                 </span>
-                                                <span className="text-yellow-600 font-bold">
+                                                <span className="text-purple-900 font-bold">
                                                     {statPair.right.range}
                                                 </span>
                                             </div>
@@ -151,6 +166,32 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Additional Stats (if any) */}
+                        {champion.stats && Object.entries(champion.stats)
+                            .filter(([key]) => !['hp', 'mana', 'attack', 'defense', 'ability_power', 'Health_Regen', 'Mana_regen', 'Armor', 'Magic_Resistance', 'Critical_Damage', 'Move_Speed', 'Attack_Range'].includes(key))
+                            .length > 0 && (
+                            <div className="mt-4">
+                                <h4 className="text-lg font-semibold text-white mb-2">Additional Stats</h4>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {Object.entries(champion.stats)
+                                        .filter(([key]) => !['hp', 'mana', 'attack', 'defense', 'ability_power', 'Health_Regen', 'Mana_regen', 'Armor', 'Magic_Resistance', 'Critical_Damage', 'Move_Speed', 'Attack_Range'].includes(key))
+                                        .map(([key, value]) => (
+                                            <div key={key} className="bg-gray-800/50 rounded p-2">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-gray-300 text-sm capitalize">
+                                                        {key.replace(/_/g, ' ')}
+                                                    </span>
+                                                    <span className="text-white font-bold">
+                                                        {value || 0}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>                
             </div>
