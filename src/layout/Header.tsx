@@ -20,12 +20,10 @@ function Header() {
         <div className="navbar bg-base-100 shadow-sm">
         <div className="flex-1">
         <Link to="/">
-                  Home
+                  League of Legends Vault
         </Link>
         </div>
         <div className="flex gap-2 items-center">
-        <input type="text" placeholder="Search" className="input input-bordered w-24 md:w-auto" />
-        
         {/* Points Display - μόνο για logged in users */}
         {user && <PointsDisplay />}
         
