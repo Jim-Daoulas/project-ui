@@ -135,7 +135,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                             </button>
                         </div>
                         
-                        <div className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 rounded-lg border border-yellow-600/40 overflow-hidden">
+                        <div className="border border-yellow-600/40 overflow-hidden">
                             {mainStats.map((statPair, index) => (
                                 <div key={index} className="border-b border-yellow-600/20 last:border-b-0">
                                     <div className="grid grid-cols-2">
@@ -145,7 +145,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                                 <span className="text-white font-medium text-sm">
                                                     {statPair.left.label}
                                                 </span>
-                                                <span className="text-purple-900 font-bold">
+                                                <span className="text-yellow-300 font-bold">
                                                     {statPair.left.range}
                                                 </span>
                                             </div>
@@ -157,7 +157,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                                 <span className="text-white font-medium text-sm">
                                                     {statPair.right.label}
                                                 </span>
-                                                <span className="text-purple-900 font-bold">
+                                                <span className="text-yellow-300 font-bold">
                                                     {statPair.right.range}
                                                 </span>
                                             </div>
@@ -166,32 +166,6 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                                 </div>
                             ))}
                         </div>
-
-                        {/* Additional Stats (if any) */}
-                        {champion.stats && Object.entries(champion.stats)
-                            .filter(([key]) => !['hp', 'mana', 'attack', 'defense', 'ability_power', 'Health_Regen', 'Mana_regen', 'Armor', 'Magic_Resistance', 'Critical_Damage', 'Move_Speed', 'Attack_Range'].includes(key))
-                            .length > 0 && (
-                            <div className="mt-4">
-                                <h4 className="text-lg font-semibold text-white mb-2">Additional Stats</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {Object.entries(champion.stats)
-                                        .filter(([key]) => !['hp', 'mana', 'attack', 'defense', 'ability_power', 'Health_Regen', 'Mana_regen', 'Armor', 'Magic_Resistance', 'Critical_Damage', 'Move_Speed', 'Attack_Range'].includes(key))
-                                        .map(([key, value]) => (
-                                            <div key={key} className="bg-gray-800/50 rounded p-2">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-gray-300 text-sm capitalize">
-                                                        {key.replace(/_/g, ' ')}
-                                                    </span>
-                                                    <span className="text-white font-bold">
-                                                        {value || 0}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))
-                                    }
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>                
             </div>
