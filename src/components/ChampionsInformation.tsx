@@ -19,6 +19,37 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
         );
     }
 
+    // Helper function to safely get stat values
+    const getStat = (key: string): number => {
+        if (!champion.stats || typeof champion.stats !== 'object') return 0;
+        const value = champion.stats[key];
+        return typeof value === 'number' ? value : parseInt(value) || 0;
+    };
+
+    // Stats configuration for the gaming-style display
+    const mainStats = [
+        {
+            left: { key: 'hp', label: '❤️ HP', value: getStat('hp'), range: `${getStat('hp')} – ${Math.round(getStat('hp') * 1.8)}` },
+            right: { key: 'mana', label: '💧 MP', value: getStat('mana'), range: `${getStat('mana')} – ${Math.round(getStat('mana') * 1.6)}` }
+        },
+        {
+            left: { key: 'Health_Regen', label: '💚 HP5', value: getStat('Health_Regen'), range: `${getStat('Health_Regen')} – ${(getStat('Health_Regen') * 1.5).toFixed(1)}` },
+            right: { key: 'Mana_regen', label: '💙 MP5', value: getStat('Mana_regen'), range: `${getStat('Mana_regen')} – ${(getStat('Mana_regen') * 2.1).toFixed(1)}` }
+        },
+        {
+            left: { key: 'Armor', label: '🛡️ AR', value: getStat('Armor'), range: `${getStat('Armor')} – ${(getStat('Armor') + 70).toFixed(1)}` },
+            right: { key: 'attack', label: '⚔️ AD', value: getStat('attack'), range: `${getStat('attack')} – ${Math.round(getStat('attack') + 45)}` }
+        },
+        {
+            left: { key: 'Magic_Resistance', label: '🔮 MR', value: getStat('Magic_Resistance'), range: `${getStat('Magic_Resistance')} – ${(getStat('Magic_Resistance') + 20).toFixed(1)}` },
+            right: { key: 'Critical_Damage', label: '💥 Crit. DMG', value: getStat('Critical_Damage'), range: `${getStat('Critical_Damage')}%` }
+        },
+        {
+            left: { key: 'Move_Speed', label: '💨 MS', value: getStat('Move_Speed'), range: `${getStat('Move_Speed')}` },
+            right: { key: 'Attack_Range', label: '🎯 Attack range', value: getStat('Attack_Range'), range: `${getStat('Attack_Range')}` }
+        }
+    ];
+
     return (
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl shadow-2xl overflow-hidden">
             {/* Header Section */}
@@ -77,104 +108,75 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                         </div>
                     </div>
 
-                    {/* Right Column - Stats Table */}
+                    {/* Right Column - Gaming Style Stats */}
                     <div>
-                        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                            Base Statistics
-                        </h3>
-                        <div className="bg-gray-800/50 rounded-lg overflow-hidden">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="bg-gray-700/50">
-                                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                                            Statistic
-                                        </th>
-                                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                                            Value
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-700">
-                                    {champion.stats ? (
-                                        <>
-                                            <tr className="hover:bg-gray-700/30 transition-colors">
-                                                <td className="px-4 py-3 flex items-center gap-2">
-                                                    <span className="text-white font-medium">Health Points</span>
-                                                </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    <span className="text-red-400 font-bold text-lg">{champion.stats.hp || 0}</span>
-                                                </td>
-                                                <td className="px-4 py-3 flex items-center gap-2">
-                                                    <span className="text-white font-medium">Mana Points</span>
-                                                </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    <span className="text-blue-400 font-bold text-lg">{champion.stats.mana || 0}</span>
-                                                </td>
-                                            </tr>
-                                            <tr className="hover:bg-gray-700/30 transition-colors">
-                                                
-                                            </tr>
-                                            <tr className="hover:bg-gray-700/30 transition-colors">
-                                                <td className="px-4 py-3 flex items-center gap-2">
-                                                    <span className="text-white font-medium">Attack Damage</span>
-                                                </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    <span className="text-orange-400 font-bold text-lg">{champion.stats.attack || 0}</span>
-                                                </td>
-                                            </tr>
-                                            <tr className="hover:bg-gray-700/30 transition-colors">
-                                                <td className="px-4 py-3 flex items-center gap-2">
-                                                    <span className="text-white font-medium">Defense</span>
-                                                </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    <span className="text-green-400 font-bold text-lg">{champion.stats.defense || 0}</span>
-                                                </td>
-                                            </tr>
-                                            <tr className="hover:bg-gray-700/30 transition-colors">
-                                                <td className="px-4 py-3 flex items-center gap-2">
-                                                    <span className="text-white font-medium">Ability Power</span>
-                                                </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    <span className="text-purple-400 font-bold text-lg">{champion.stats.ability_power || 0}</span>
-                                                </td>
-                                            </tr>
-                                            
-                                            {/* Additional Stats if they exist */}
-                                            {Object.entries(champion.stats)
-                                                .filter(([key]) => !['hp', 'mana', 'attack', 'defense', 'ability_power'].includes(key))
-                                                .map(([key, value]) => (
-                                                    <tr key={key} className="hover:bg-gray-700/30 transition-colors">
-                                                        <td className="px-4 py-3 flex items-center gap-2">
-                                                            <span className="text-lg">📈</span>
-                                                            <span className="text-white font-medium capitalize">
-                                                                {key.replace(/_/g, ' ')}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-4 py-3 text-center">
-                                                            <span className="text-indigo-400 font-bold text-lg">{value || 0}</span>
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <div className="w-full bg-gray-600 rounded-full h-2">
-                                                                <div 
-                                                                    className="bg-gradient-to-r from-indigo-400 to-indigo-600 h-2 rounded-full transition-all duration-500"
-                                                                    style={{ width: `${Math.min(((value || 0) / 100) * 100, 100)}%` }}
-                                                                />
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            }
-                                        </>
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={3} className="px-4 py-8 text-center text-gray-400">
-                                                No stats available for this champion
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                        <div className="flex items-center gap-2 mb-4">
+                            <h3 className="text-xl font-bold text-white">Base statistics</h3>
+                            <div className="bg-gradient-to-r from-yellow-600 to-yellow-700 text-black px-2 py-1 rounded text-xs font-bold">
+                                Level: 1-18
+                            </div>
+                            <button className="ml-auto text-gray-400 hover:text-white text-sm">
+                                Edit
+                            </button>
                         </div>
+                        
+                        <div className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 rounded-lg border border-yellow-600/40 overflow-hidden">
+                            {mainStats.map((statPair, index) => (
+                                <div key={index} className="border-b border-yellow-600/20 last:border-b-0">
+                                    <div className="grid grid-cols-2">
+                                        {/* Left Stat */}
+                                        <div className="p-3 border-r border-yellow-600/20">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-white font-medium text-sm">
+                                                    {statPair.left.label}
+                                                </span>
+                                                <span className="text-yellow-300 font-bold">
+                                                    {statPair.left.range}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Right Stat */}
+                                        <div className="p-3">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-white font-medium text-sm">
+                                                    {statPair.right.label}
+                                                </span>
+                                                <span className="text-yellow-300 font-bold">
+                                                    {statPair.right.range}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Additional Stats (if any) */}
+                        {champion.stats && Object.entries(champion.stats)
+                            .filter(([key]) => !['hp', 'mana', 'attack', 'defense', 'ability_power', 'Health_Regen', 'Mana_regen', 'Armor', 'Magic_Resistance', 'Critical_Damage', 'Move_Speed', 'Attack_Range'].includes(key))
+                            .length > 0 && (
+                            <div className="mt-4">
+                                <h4 className="text-lg font-semibold text-white mb-2">Additional Stats</h4>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {Object.entries(champion.stats)
+                                        .filter(([key]) => !['hp', 'mana', 'attack', 'defense', 'ability_power', 'Health_Regen', 'Mana_regen', 'Armor', 'Magic_Resistance', 'Critical_Damage', 'Move_Speed', 'Attack_Range'].includes(key))
+                                        .map(([key, value]) => (
+                                            <div key={key} className="bg-gray-800/50 rounded p-2">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-gray-300 text-sm capitalize">
+                                                        {key.replace(/_/g, ' ')}
+                                                    </span>
+                                                    <span className="text-white font-bold">
+                                                        {value || 0}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>                
             </div>
