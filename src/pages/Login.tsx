@@ -82,14 +82,6 @@ function Login() {
                             </Link>
                         </p>
                     </div>
-
-                    {/* Test Credentials */}
-                    <div className="mt-6 p-4 bg-gray-700 rounded-lg">
-                        <h3 className="text-sm font-medium text-gray-300 mb-2">Test any existing user from your database</h3>
-                        <div className="text-xs text-gray-400">
-                            <p>Use any email/password combination from your users table</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
