@@ -29,20 +29,20 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
     // Stats configuration for the gaming-style display
     const mainStats = [
         {
-            left: { key: 'hp', label: '❤️ HP', value: getStat('hp'), range: `${getStat('hp')} – ${Math.round(getStat('hp'))}` },
-            right: { key: 'mana', label: '💧 MP', value: getStat('mp'), range: `${getStat('mp')} – ${Math.round(getStat('mp') )}` }
+            left: { key: 'hp', label: '❤️ HP', value: getStat('hp') },
+            right: { key: 'mana', label: '💧 MP', value: getStat('mp') }
         },
         {
-            left: { key: 'Health_Regen', label: '💚 HP5', value: getStat('Health_Regen'), range: `${getStat('Health_Regen')} – ${(getStat('Health_Regen') )}` },
-            right: { key: 'Mana_regen', label: '💙 MP5', value: getStat('Mana_regen'), range: `${getStat('Mana_regen')} – ${(getStat('Mana_regen'))}` }
+            left: { key: 'Health_Regen', label: '💚 HP5', value: getStat('Health_Regen') },
+            right: { key: 'Mana_regen', label: '💙 MP5', value: getStat('Mana_regen') }
         },
         {
-            left: { key: 'Armor', label: '🛡️ AR', value: getStat('Armor'), range: `${getStat('Armor')} – ${(getStat('Armor'))}` },
-            right: { key: 'attack', label: '⚔️ AD', value: getStat('Αttack'), range: `${getStat('Αttack')} – ${Math.round(getStat('Αttack'))}` }
+            left: { key: 'Armor', label: '🛡️ AR', value: getStat('Armor') },
+            right: { key: 'attack', label: '⚔️ AD', value: getStat('Αttack')}
         },
         {
-            left: { key: 'Magic_Resistance', label: '🔮 MR', value: getStat('Magic_Resistance'), range: `${getStat('Magic_Resistance')} – ${(getStat('Magic_Resistance'))}` },
-            right: { key: 'Critical_Damage', label: '💥 Crit. DMG', value: getStat('Critical_Damage'), range: `${getStat('Critical_Damage')}%` }
+            left: { key: 'Magic_Resistance', label: '🔮 MR', value: getStat('Magic_Resistance') },
+            right: { key: 'Critical_Damage', label: '💥 Crit. DMG', value: getStat('Critical_Damage')}
         },
         {
             left: { key: 'Move_Speed', label: '💨 MS', value: getStat('Move_Speed'), range: `${getStat('Move_Speed')}` },
