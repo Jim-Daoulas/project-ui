@@ -82,6 +82,7 @@ const ChampionInfo = ({ champion }: ChampionInfoProps) => {
                         <div className="flex gap-4 mb-4">
                             <div className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-medium">
                                 {champion.role}
+                                {champion.secondary_role && ` / ${champion.secondary_role}`}
                             </div>
                             <div className="px-3 py-1 rounded-full bg-gray-700 text-white text-sm font-medium">
                                 {champion.region}

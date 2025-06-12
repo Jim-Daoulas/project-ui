@@ -8,6 +8,7 @@ export type Champion = {
   name: string;
   title: string;
   role: string;
+  secondary_role: string;
   region: string;
   description: string;
   image_url: string | null;
