@@ -137,31 +137,9 @@ const ChampionsList = ({
 
   return (
     <div className="w-full min-h-screen">
-      {/* Title */}
-      {showTitle && (
-        <div className="mb-8 pt-8 px-8">
-          <h1 className="text-4xl font-bold mb-4 text-gray-800">League of Legends Rework Vault</h1>
-          <p className="text-lg text-gray-500">
-            Explore all League of Legends champions and their rework proposals
-          </p>
-        </div>
-      )}
-
-      {/* User info - only show if not already shown in parent */}
-      {user && userProgress && !showTitle && (
-        <div className="mb-6 px-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
-            <p className="text-lg text-white">
-              Welcome, <strong>{user.name}</strong>! 
-              You have <strong className="text-yellow-400">{userProgress.points}</strong> points.
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Filters */}
       {showFilters && (
-        <div className="mb-8 px-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="max-w-7xl mx-auto px-8 pb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div className="form-control">
             <label className="label">
