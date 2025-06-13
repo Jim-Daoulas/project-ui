@@ -83,7 +83,7 @@ const ChampionsList = ({
     }
 
     try {
-      const response = await axiosInstance.post(`/champions/${champion}/unlock`);
+      const response = await axiosInstance.post(`/unlocks/unlock/champion/${champion.id}`);
       
       if (response.data.success) {
         // ✅ Ενημέρωσε το AuthContext με τους νέους πόντους
