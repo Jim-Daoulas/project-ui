@@ -20,7 +20,7 @@ function Header() {
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 navbar bg-base-100 shadow-sm sticky top-0 z-50">
         <div className="flex-1">
         <Link to="/" className="text-white pl-6">
-            League of Legends Vault
+            LoL Vault
     </Link>
         </div>
         <div className="flex gap-2 items-center pr-6">
