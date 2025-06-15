@@ -149,7 +149,7 @@ const ChampionsList = ({
     <div className="w-full min-h-screen">
       {/* Filters */}
       {showFilters && (
-        <div className="max-w-7xl mx-auto px-8 pb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
           {/* Search */}
           <div className="form-control">
             <label className="label">
@@ -250,7 +250,7 @@ const ChampionsList = ({
                 
                 {/* Bottom bar with champion name */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
-                  <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+                  <h2 className="text-white font-bold text-sm sm:text-lg uppercase tracking-wide">
                     {champion.name}
                   </h2>
                 </div>
