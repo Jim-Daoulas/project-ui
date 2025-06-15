@@ -271,8 +271,8 @@ const ChampionsList = ({
                     target.src = `https://via.placeholder.com/400x500/667eea/ffff?text=${champion.name.charAt(0)}`;
                   }}
                 />
-                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
-                  <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-2 sm:p-3">
+                  <h2 className="text-white font-bold text-sm sm:text-lg uppercase tracking-wide">
                     {champion.name}
                   </h2>
                 </div>
