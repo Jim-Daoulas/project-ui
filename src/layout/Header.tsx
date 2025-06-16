@@ -42,11 +42,6 @@ function Header() {
                 tabIndex={0}
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
                 <li><span>Hello, {user.name}</span></li>
-                <li>
-                  <NavLink to="/vault">
-                    🏛️ My Vault
-                  </NavLink>
-                </li>
                 <li><button onClick={handleLogout}>Logout</button></li>
               </ul>
             </div>
