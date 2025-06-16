@@ -16,13 +16,6 @@ const ChampionRework = ({ champion, rework }: ChampionReworkProps) => {
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
     const [commentError, setCommentError] = useState('');
 
-    // Helper για τα χρώματα των stats
-    const getStatColor = (currentValue: number, reworkValue: number) => {
-        if (reworkValue > currentValue) return 'text-green-400';
-        if (reworkValue < currentValue) return 'text-red-400';
-        return 'text-gray-300';
-    };
-
     // Helper για τα χρώματα των ability keys
     const getAbilityKeyColor = (key: string) => {
         const colors = {
@@ -33,13 +26,6 @@ const ChampionRework = ({ champion, rework }: ChampionReworkProps) => {
             'R': 'from-red-500 to-red-600',
         };
         return colors[key.toUpperCase() as keyof typeof colors] || 'from-gray-500 to-gray-600';
-    };
-
-    // Safe stat access helper
-    const getStat = (stats: Record<string, any> | null | undefined, key: string): number => {
-        if (!stats || typeof stats !== 'object') return 0;
-        const value = stats[key];
-        return typeof value === 'number' ? value : 0;
     };
 
     // Submit comment function
@@ -90,75 +76,6 @@ const ChampionRework = ({ champion, rework }: ChampionReworkProps) => {
         } finally {
             setIsSubmittingComment(false);
         }
-    };
-
-    // Render stats comparison
-    const renderStatsComparison = () => {
-        if (!rework?.stats || !champion.stats) return null;
-
-        const statLabels = {
-            hp: 'Health Points',
-            mana: 'Mana Points',
-            attack: 'Attack Damage',
-            defense: 'Defense',
-            ability_power: 'Ability Power'
-        };
-
-        return (
-            <div className="space-y-4">
-                {Object.entries(statLabels).map(([key, label]) => {
-                    const currentValue = getStat(champion.stats, key);
-                    const reworkValue = getStat(rework.stats, key);
-                    const difference = reworkValue - currentValue;
-                    
-                    return (
-                        <div key={key} className="bg-gray-800/30 rounded-lg p-4">
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-white font-medium">{label}</span>
-                                <div className="flex items-center gap-4">
-                                    <span className="text-gray-400 text-sm">
-                                        Current: <span className="text-white">{currentValue}</span>
-                                    </span>
-                                    <span className="text-gray-400 text-sm">→</span>
-                                    <span className="text-gray-400 text-sm">
-                                        Rework: <span className={getStatColor(currentValue, reworkValue)}>{reworkValue}</span>
-                                    </span>
-                                    {difference !== 0 && (
-                                        <span className={`text-sm font-bold ${difference > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                            ({difference > 0 ? '+' : ''}{difference})
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                            
-                            {/* Visual bar comparison */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <div className="text-xs text-gray-400 mb-1">Current</div>
-                                    <div className="w-full bg-gray-700 rounded-full h-2">
-                                        <div 
-                                            className="bg-gray-400 h-2 rounded-full transition-all duration-500"
-                                            style={{ width: `${Math.min((currentValue / 200) * 100, 100)}%` }}
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="text-xs text-gray-400 mb-1">Rework</div>
-                                    <div className="w-full bg-gray-700 rounded-full h-2">
-                                        <div 
-                                            className={`h-2 rounded-full transition-all duration-500 ${
-                                                difference > 0 ? 'bg-green-400' : difference < 0 ? 'bg-red-400' : 'bg-gray-400'
-                                            }`}
-                                            style={{ width: `${Math.min((reworkValue / 200) * 100, 100)}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        );
     };
 
     if (!rework) {
@@ -219,11 +136,17 @@ const ChampionRework = ({ champion, rework }: ChampionReworkProps) => {
                     </div>
                 </div>
 
-                {/* Stats Comparison */}
-                <div>
-                    <h4 className="text-lg font-semibold text-white mb-4">Statistics Changes</h4>
-                    {renderStatsComparison()}
-                </div>
+                {/* Rework Stats */}
+                {rework.stats && (
+                    <div>
+                        <h4 className="text-lg font-semibold text-white mb-4">Stats</h4>
+                        <div className="bg-gray-800/30 rounded-lg p-4">
+                            <div className="text-gray-300 whitespace-pre-line">
+                                {typeof rework.stats === 'string' ? rework.stats : JSON.stringify(rework.stats, null, 2)}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Reworked Abilities */}
                 {rework.abilities && rework.abilities.length > 0 && (
@@ -354,7 +277,6 @@ const ChampionRework = ({ champion, rework }: ChampionReworkProps) => {
                         </div>
                     ) : (
                         <div className="text-center py-8">
-                            <div className="text-4xl mb-2">💭</div>
                             <p className="text-gray-400">No comments yet. Be the first to share your thoughts!</p>
                         </div>
                     )}
