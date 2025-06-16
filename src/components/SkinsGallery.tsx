@@ -19,6 +19,12 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
     const thumbnailsRef = useRef<HTMLDivElement>(null);
     const [skinsLoading] = useState(false);
 
+    useEffect(() => {
+        if (skins && skins.length > 0 && !selectedSkin) {
+            setSelectedSkin(skins[0]);
+        }
+    }, [skins, selectedSkin]);
+    
     // Fetch user points on component mount
     useEffect(() => {
         if (user) {
