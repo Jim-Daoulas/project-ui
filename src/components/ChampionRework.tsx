@@ -194,7 +194,7 @@ const ChampionRework = ({ champion, rework }: ChampionReworkProps) => {
             {/* Header */}
             <div className="bg-gradient-to-r from-gray-800 to-gray-700 p-6">
                 <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
-                    🔄 Champion Rework
+                    Champion Rework
                 </h2>
                 <p className="text-gray-300">
                     Proposed changes and improvements for {champion.name}

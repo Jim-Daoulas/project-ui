@@ -99,7 +99,6 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                     </h2>
                 )}
                 <div className="text-center py-12 bg-gray-800 rounded-lg">
-                    <div className="text-4xl mb-4">🎨</div>
                     <p className="text-gray-400">No skins available for this champion</p>
                 </div>
             </div>
@@ -194,7 +193,6 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                     ) : (
                         <div className="flex items-center justify-center h-full">
                             <div className="text-center">
-                                <div className="text-6xl mb-4">🎨</div>
                                 <p className="text-gray-400">Select a skin to preview</p>
                             </div>
                         </div>
