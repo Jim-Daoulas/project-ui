@@ -186,7 +186,13 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                             
                             {/* Skin Name Overlay */}
-                           
+                            <div className="absolute bottom-0 left-0 right-0 p-6">
+                                <div className="flex justify-between items-end">
+                                        <h3 className="text-white text-2xl font-bold mb-2 flex items-center gap-2">
+                                            {selectedSkin.name}
+                                        </h3>
+                                </div>
+                            </div>
                         </>
                     ) : (
                         <div className="flex items-center justify-center h-full">
