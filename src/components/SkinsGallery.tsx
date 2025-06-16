@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Skin } from '../types/skins';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../api/axiosInstance';
+import { Link } from 'react-router';
 
 interface SkinsGalleryProps {
     skins: Skin[];
@@ -124,8 +125,6 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                             {selectedSkin.is_locked && (
                                 <div className="absolute inset-0 bg-black/60 z-10 flex items-center justify-center">
                                     <div className="text-center">
-                                        <div className="text-6xl mb-4">🔒</div>
-                                        <h3 className="text-white text-xl font-bold mb-2">Skin Locked</h3>
                                         <p className="text-gray-300 mb-4">
                                             Unlock cost: {selectedSkin.unlock_cost} points
                                         </p>
@@ -152,12 +151,11 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                                                 }
                                             </button>
                                         ) : (
-                                            <button 
-                                                onClick={() => alert('Please login to unlock skins')}
+                                            <Link to="/login"
                                                 className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
                                             >
                                                 Login to Unlock
-                                            </button>
+                                            </Link>
                                         )}
                                     </div>
                                 </div>
