@@ -129,6 +129,7 @@ const ChampionDetail = () => {
           )}
           
           {/* ✅ Skins Section - χρησιμοποιούμε τα skins από το state */}
+          {champion.skins && (
           <section>               
                   <SkinsGallery
                     skins={skins}
@@ -137,7 +138,7 @@ const ChampionDetail = () => {
                     onSkinUnlocked={handleSkinUnlocked}
                       />
           </section>
-        
+          )}
 
           {/* Rework Section */}
           {champion.rework && (
