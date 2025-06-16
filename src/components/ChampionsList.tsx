@@ -230,7 +230,6 @@ const ChampionsList = ({
                 {/* Lock overlay */}
                 <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center">
                   <div className="text-white text-center">
-                    <p className="text-sm mb-3 font-semibold">Locked</p>
                     {user && userProgress ? (
                       <div className={`px-3 py-2 rounded text-xs font-semibold transition-colors ${
                         userProgress.points >= (champion.unlock_cost || 0)
