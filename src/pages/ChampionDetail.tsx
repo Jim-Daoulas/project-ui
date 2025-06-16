@@ -19,7 +19,6 @@ const ChampionDetail = () => {
   const [champion, setChampion] = useState<Champion | null>(null);
   const [skins, setSkins] = useState<Skin[]>([]);
   const [loading, setLoading] = useState(true);
-  const [skinsLoading, setSkinsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchChampion = async () => {
@@ -57,7 +56,6 @@ const ChampionDetail = () => {
     if (!id) return;
     
     try {
-      setSkinsLoading(true);
       
       // ✅ Χρησιμοποιούμε το σωστό endpoint για skins
       const endpoint = user 
@@ -74,7 +72,6 @@ const ChampionDetail = () => {
       // Δεν κάνουμε error για skins, απλά δεν τα δείχνουμε
       setSkins([]);
     } finally {
-      setSkinsLoading(false);
     }
   };
 
@@ -132,32 +129,15 @@ const ChampionDetail = () => {
           )}
           
           {/* ✅ Skins Section - χρησιμοποιούμε τα skins από το state */}
-          <section>
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl shadow-2xl overflow-hidden">
-              <div className="p-6">
-                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                  🎨 Champion Skins
-                </h3>
-                
-                {skinsLoading ? (
-                  <div className="flex justify-center py-8">
-                    <span className="loading loading-spinner loading-lg"></span>
-                  </div>
-                ) : skins.length > 0 ? (
+          <section>               
                   <SkinsGallery
                     skins={skins}
                     championName={champion.name}
                     showTitle={false}
                     onSkinUnlocked={handleSkinUnlocked}
-                  />
-                ) : (
-                  <div className="text-center py-8 text-gray-400">
-                    No skins available for this champion
-                  </div>
-                )}
-              </div>
-            </div>
+                      />
           </section>
+        
 
           {/* Rework Section */}
           {champion.rework && (

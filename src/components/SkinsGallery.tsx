@@ -17,6 +17,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
     const [unlockingStates, setUnlockingStates] = useState<Record<number, boolean>>({});
     const [userPoints, setUserPoints] = useState<number>(0);
     const thumbnailsRef = useRef<HTMLDivElement>(null);
+    const [skinsLoading] = useState(false);
 
     // Fetch user points on component mount
     useEffect(() => {
@@ -106,12 +107,17 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
     }
 
     return (
-        <div className="w-full">
+       <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl shadow-2xl overflow-hidden">
             {showTitle && (
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-white uppercase tracking-wider">
-                        Available Skins
-                    </h2>
+                <div className="p-6">
+                    <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                        Champion Skins
+                    </h3>
+                    {skinsLoading ? (
+                        <div className="text-center">
+                            <span className="loading loading-spinner loading-lg"></span>
+                        </div>
+                    ) : null}
                 </div>
             )}
             
