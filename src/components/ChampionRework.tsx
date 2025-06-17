@@ -206,7 +206,7 @@ const ChampionRework = ({ champion, rework }: ChampionReworkProps) => {
                 {/* Comments Section */}
                 <div>
                     <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                        💬 Community Feedback
+                        Community Feedback
                         <span className="text-sm text-gray-400">({comments.length})</span>
                     </h4>
                     

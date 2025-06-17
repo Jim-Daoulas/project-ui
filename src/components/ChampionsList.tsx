@@ -239,9 +239,10 @@ const ChampionsList = ({
                         Unlock ({champion.unlock_cost || 0} points)
                       </div>
                     ) : (
-                      <div className="bg-gray-500 px-3 py-2 rounded text-xs font-semibold">
+                      <Link to="/login"
+                      className="bg-gray-500 px-3 py-2 rounded text-xs font-semibold">
                         Login to Unlock
-                      </div>
+                       </Link>
                     )}
                   </div>
                 </div>
