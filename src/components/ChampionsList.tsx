@@ -68,11 +68,6 @@ const ChampionsList = ({
   const handleUnlockChampion = async (championId: number, event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    
-    if (!user) {
-      alert('Please login to unlock champions');
-      return;
-    }
 
     const champion = champions.find(c => c.id === championId);
     if (!champion) return;
