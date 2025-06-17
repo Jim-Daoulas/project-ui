@@ -1,127 +1,122 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axiosInstance from '../api/axiosInstance';
+import { useUnlock } from '../hooks/useUnlock';
 import { useAuth } from '../context/AuthContext';
-import { Champion, ChampionsResponse } from '../types/champions';
+import axiosInstance from '../api/axiosInstance';
+import { Champion } from '../types/champions';
+
+// ✅ API Response type
+interface ChampionsApiResponse {
+  success: boolean;
+  data: Champion[];
+  message: string;
+}
 
 interface ChampionsListProps {
   showFilters?: boolean;
   showTitle?: boolean;
   limit?: number;
-  onChampionUnlocked?: () => void;
 }
 
 const ChampionsList = ({ 
   showFilters = true, 
-  showTitle = true, 
-  limit,
-  onChampionUnlocked
+  limit 
 }: ChampionsListProps) => {
-  const { user } = useAuth();
   const [champions, setChampions] = useState<Champion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
-  const [unlockingStates, setUnlockingStates] = useState<Record<number, boolean>>({});
-  const [userPoints, setUserPoints] = useState<number>(0);
+  
+  const { user, updateUserPoints } = useAuth();
+  const { userProgress } = useUnlock();
 
-  // Fetch user points on component mount
-  useEffect(() => {
-    if (user) {
-      axiosInstance.get('/unlocks/progress')
-        .then(response => {
-          if (response.data.success) {
-            setUserPoints(response.data.data.points);
-          }
-        })
-        .catch(error => console.error('Failed to fetch user progress:', error));
-    }
-  }, [user]);
-
-  // Fetch champions from API
-  useEffect(() => {
-    const fetchChampions = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await axiosInstance.get<ChampionsResponse>('/champions/champions');
-        console.log('API Response:', response.data);
-        
-        if (response.data.success && Array.isArray(response.data.data)) {
-          setChampions(response.data.data);
-          console.log('Champions loaded:', response.data.data);
-        } else if (Array.isArray(response.data)) {
-          // Fallback if data is directly an array
-          setChampions(response.data);
-          console.log('Champions loaded (fallback):', response.data);
-        } else {
-          console.error('Unexpected data format:', response.data);
-          setError('Failed to fetch champions - unexpected data format');
-        }
-      } catch (err) {
-        setError('Error fetching champions');
-        console.error('Error fetching champions:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchChampions();
-  }, []);
-
-  // Handle champion unlock
-  const handleUnlockChampion = async (champion: Champion) => {
-    // Simple check without alerts for UI state
-    if (!user || userPoints === undefined) return;
-    
+  // ✅ Fetch champions with unlock functionality
+  const fetchChampions = async () => {
     try {
-      setUnlockingStates(prev => ({ ...prev, [champion.id]: true }));
+      setLoading(true);
+      setError(null);
       
-      const response = await axiosInstance.post(`/champions/${champion.id}/unlock`);
+      // Use different endpoint based on auth status
+      const endpoint = user ? '/champions/champions' : '/champions/public';
+      const response = await axiosInstance.get<ChampionsApiResponse>(endpoint);
+      
+      console.log('API Response:', response.data);
+      
+      if (response.data.success && Array.isArray(response.data.data)) {
+        setChampions(response.data.data);
+        console.log('Champions loaded:', response.data.data);
+        console.log('Detailed champions:', response.data.data.map(c => ({
+          id: c.id,
+          name: c.name,
+          is_locked: c.is_locked
+        })));
+      } else {
+        console.error('Unexpected data format:', response.data);
+        setError('Failed to fetch champions - unexpected data format');
+      }
+    } catch (err) {
+      setError('Error fetching champions');
+      console.error('Error fetching champions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Handle unlock champion με νέα λογική (χωρίς alert για points)
+  const handleUnlockChampion = async (championId: number, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const champion = champions.find(c => c.id === championId);
+    if (!champion) return;
+
+    // ✅ Σιωπηλή έξοδος αν δεν είναι logged in ή δεν έχει userProgress
+    if (!user || !userProgress) {
+      return; 
+    }
+
+    // ✅ ΑΦΑΙΡΕΘΗΚΕ το alert για points - το UI δείχνει ήδη την κατάσταση
+
+    try {
+      const response = await axiosInstance.post(`/unlocks/unlock/champion/${champion.id}`);
       
       if (response.data.success) {
-        // Update user points
-        const newPoints = response.data.data.user_points;
-        setUserPoints(newPoints);
+        // ✅ Ενημέρωσε το AuthContext με τους νέους πόντους
+        updateUserPoints(response.data.data.user_points);
         
-        // Call callback to refresh parent component
-        if (onChampionUnlocked) {
-          onChampionUnlocked();
-        }
-        
-        // Success message
+        await fetchChampions(); // Re-fetch to update UI
         alert(`${champion.name} unlocked successfully!`);
-        
-        // Refresh champions list
-        const updatedResponse = await axiosInstance.get<ChampionsResponse>('/champions/champions');
-        if (updatedResponse.data.success && Array.isArray(updatedResponse.data.data)) {
-          setChampions(updatedResponse.data.data);
-        }
       } else {
         alert(response.data.message || 'Failed to unlock champion');
       }
     } catch (error: any) {
-      console.error('Unlock error:', error);
+      console.error('Error unlocking champion:', error);
       const message = error.response?.data?.message || 'Failed to unlock champion';
       alert(message);
-    } finally {
-      setUnlockingStates(prev => ({ ...prev, [champion.id]: false }));
     }
   };
+
+  useEffect(() => {
+    fetchChampions();
+  }, [user]);
 
   // Filter champions based on search and filters
   const filteredChampions = (champions || []).filter(champion => {
     if (!champion) return false;
     
     const matchesSearch = (champion.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (champion.title || '').toLowerCase().includes(searchQuery.toLowerCase());
+      (champion.title || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = selectedRole === 'all' || champion.role === selectedRole;
     const matchesRegion = selectedRegion === 'all' || champion.region === selectedRegion;
     
     return matchesSearch && matchesRole && matchesRegion;
-  }).slice(0, limit); // Apply limit if provided
+  })
+  .sort((a, b) => {
+    // Αλφαβητική ταξινόμηση βάσει ονόματος
+    return a.name.localeCompare(b.name);
+  }).slice(0, limit);
 
   // Get unique roles and regions for filters
   const roles = [...new Set((champions || []).map(champion => champion?.role).filter(Boolean))];
@@ -130,8 +125,8 @@ const ChampionsList = ({
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <span className="loading loading-spinner loading-lg"></span>
-        <span className="ml-4 text-lg">Loading champions...</span>
+        <span className="loading loading-spinner loading-lg text-white"></span>
+        <span className="ml-4 text-lg text-white">Loading champions...</span>
       </div>
     );
   }
@@ -149,28 +144,18 @@ const ChampionsList = ({
 
   return (
     <div className="w-full min-h-screen">
-      {/* Title */}
-      {showTitle && (
-        <div className="mb-8 pt-8 px-8">
-          <h1 className="text-4xl font-bold mb-4 text-gray-800">League of Legends Rework Vault</h1>
-          <p className="text-lg text-gray-500">
-            Explore all League of Legends champions and their rework proposals
-          </p>
-        </div>
-      )}
-
       {/* Filters */}
       {showFilters && (
-        <div className="mb-8 px-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
           {/* Search */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-gray-500">Search Champions</span>
+              <span className="label-text text-gray-300">Search Champions</span>
             </label>
             <input
               type="text"
               placeholder="Search by name or title..."
-              className="input input-bordered w-full text-gray-600 border-gray-600"
+              className="input input-bordered w-full text-gray-800 bg-white/90"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -179,10 +164,10 @@ const ChampionsList = ({
           {/* Role Filter */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-white">Filter by Role</span>
+              <span className="label-text text-gray-300">Filter by Role</span>
             </label>
             <select
-              className="select select-bordered w-full text-gray-500 border-gray-600"
+              className="select select-bordered w-full text-gray-800 bg-white/90"
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
             >
@@ -196,10 +181,10 @@ const ChampionsList = ({
           {/* Region Filter */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-white">Filter by Region</span>
+              <span className="label-text text-gray-300">Filter by Region</span>
             </label>
             <select
-              className="select select-bordered w-full text-gray-500 border-gray-600"
+              className="select select-bordered w-full text-gray-800 bg-white/90"
               value={selectedRegion}
               onChange={(e) => setSelectedRegion(e.target.value)}
             >
@@ -211,106 +196,105 @@ const ChampionsList = ({
           </div>
         </div>
       )}
-
-      {/* User Points Display */}
-      {user && (
-        <div className="mb-6 px-8">
-          <div className="bg-purple-600/20 rounded-lg p-4 border border-purple-500/30">
-            <div className="flex items-center justify-between">
-              <span className="text-purple-300">Your Points:</span>
-              <span className="text-purple-100 font-bold text-lg">{userPoints}💰</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Results Count */}
-      <div className="mb-6 px-8 text-sm text-gray-400">
-        Showing {filteredChampions.length} of {champions.length} champions
-      </div>
-
+      
       {/* Champions Grid */}
       {filteredChampions.length === 0 ? (
         <div className="text-center py-12">
+          <div className="text-6xl mb-4">🔍</div>
           <h3 className="text-xl font-semibold mb-2 text-white">No champions found</h3>
           <p className="text-gray-400">Try adjusting your search or filters</p>
         </div>
       ) : (
-        <div className="px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="max-w-7xl mx-auto px-8 pb-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredChampions.map(champion => (
-            <div key={champion.id} className="relative">
-              <Link
-                to={`/champions/${champion.id}`}
-                className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group block"
+            champion.is_locked ? (
+              <div
+                key={champion.id}
+                className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group cursor-pointer"
+                onClick={(e) => handleUnlockChampion(champion.id, e)}
               >
                 {/* Background Image */}
                 <img
                   src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
                   alt={champion.name}
-                  className={`absolute inset-0 w-full h-full object-cover ${champion.is_locked ? 'filter grayscale' : ''}`}
+                  className="absolute inset-0 w-full h-full object-cover filter grayscale"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = `https://via.placeholder.com/400x500/667eea/ffffff?text=${champion.name.charAt(0)}`;
+                    target.src = `https://via.placeholder.com/400x500/667eea/ffff?text=${champion.name.charAt(0)}`;
                   }}
                 />
                 
-                {/* Lock Overlay */}
-                {champion.is_locked && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <div className="text-center" onClick={(e) => e.preventDefault()}>
-                      <p className="text-white text-sm font-bold mb-2">
-                        {champion.name}
-                      </p>
-                      <p className="text-gray-300 text-xs mb-3">
-                        Unlock cost: {champion.unlock_cost || 0} points
-                      </p>
-                      {user ? (
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleUnlockChampion(champion);
-                          }}
-                          disabled={
-                            unlockingStates[champion.id] || 
-                            userPoints < (champion.unlock_cost || 0)
+                {/* ✅ ΝΕΟ Lock overlay με λογική όπως SkinsGallery */}
+                <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center">
+                  <div className="text-white text-center">
+                    {user && userProgress ? (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleUnlockChampion(champion.id, e);
+                        }}
+                        disabled={
+                          (userProgress.points || 0) < (champion.unlock_cost || 0)
+                        }
+                        className={`
+                          px-3 py-2 rounded text-xs font-semibold transition-colors
+                          ${(userProgress.points || 0) >= (champion.unlock_cost || 0)
+                            ? 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer'
+                            : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                           }
-                          className={`
-                            px-4 py-2 rounded-lg font-semibold transition-colors text-sm
-                            ${userPoints >= (champion.unlock_cost || 0)
-                              ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                            }
-                          `}
-                        >
-                          {unlockingStates[champion.id] 
-                            ? 'Unlocking...' 
-                            : userPoints >= (champion.unlock_cost || 0)
-                              ? 'Unlock Champion'
-                              : 'Not Enough Points'
-                          }
-                        </button>
-                      ) : (
-                        <Link
-                          to="/login"
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors text-sm"
-                        >
-                          Login to Unlock
-                        </Link>
-                      )}
-                    </div>
+                        `}
+                      >
+                        {(userProgress.points || 0) >= (champion.unlock_cost || 0)
+                          ? `Unlock (${champion.unlock_cost || 0} points)`
+                          : 'Not Enough Points'
+                        }
+                      </button>
+                    ) : (
+                      <Link to="/login"
+                        className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-xs font-semibold text-white">
+                        Login to Unlock
+                      </Link>
+                    )}
                   </div>
-                )}
+                </div>
                 
                 {/* Bottom bar with champion name */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-3">
-                  <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+                  <h2 className="text-white font-bold text-sm sm:text-lg uppercase tracking-wide">
                     {champion.name}
                   </h2>
                 </div>
+              </div>
+            ) : (
+              <Link
+                key={champion.id}
+                to={`/champions/${champion.id}`}
+                className="champion-card relative rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 aspect-[3/4] group"
+              >
+                {/* Background Image */}
+                <img
+                  src={champion.image_url || 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malzahar_0.jpg'}
+                  alt={champion.name}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = `https://via.placeholder.com/400x500/667eea/ffff?text=${champion.name.charAt(0)}`;
+                  }}
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 p-2 sm:p-3">
+                  <h2 className="text-white font-bold text-sm sm:text-lg uppercase tracking-wide">
+                    {champion.name}
+                  </h2>
+                </div>
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
+                  <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p className="text-sm font-semibold">View Details</p>
+                  </div>
+                </div>
               </Link>
-            </div>
+            )
           ))}
         </div>
       )}
