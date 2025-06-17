@@ -72,7 +72,10 @@ const ChampionsList = ({
     const champion = champions.find(c => c.id === championId);
     if (!champion) return;
 
-    if (!userProgress || userProgress.points < (champion.unlock_cost || 0)) {
+    if (!user || !userProgress) {
+    return; 
+}
+    if ( userProgress.points < (champion.unlock_cost || 0)) {
       alert('Not enough points to unlock this champion');
       return;
     }
