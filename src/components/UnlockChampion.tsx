@@ -34,7 +34,7 @@ const UnlockChampion = ({ champion, onUnlock }: UnlockChampionProps) => {
             console.log('Attempting to unlock champion:', champion.id);
             console.log('Request URL:', `/unlocks/champion/${champion.id}`);
             
-            const response = await axiosInstance.post(`/unlocks/champion/${champion.id}`);
+            const response = await axiosInstance.post(`/unlocks/unlock/champion/${champion.id}`);
             
             console.log('Unlock response:', response.data);
             

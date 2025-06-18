@@ -32,7 +32,7 @@ export const useUnlock = () => {
     try {
       setLoading(true);
       // ✅ ΔΙΟΡΘΩΣΗ: Σωστό endpoint
-      const response = await axiosInstance.post(`/champions/${championId}/unlock`);
+      const response = await axiosInstance.post(`/unlocks/unlock/champion/${championId}`);
       
       if (response.data.success) {
         // Ενημέρωση local state
@@ -56,12 +56,12 @@ export const useUnlock = () => {
     }
   };
 
-  // ✅ ΔΙΟΡΘΩΣΗ: Unlock skin
+  // Unlock skin
   const unlockSkin = async (skinId: number): Promise<UnlockResult> => {
     try {
       setLoading(true);
-      // ✅ ΔΙΟΡΘΩΣΗ: Σωστό endpoint
-      const response = await axiosInstance.post(`/skins/${skinId}/unlock`);
+      // endpoint
+      const response = await axiosInstance.post(`/unlocks/unlock/skin/${skinId}`);
       
       if (response.data.success) {
         // Ενημέρωση local state
@@ -141,7 +141,7 @@ export const useUnlock = () => {
     }
   };
 
-  // ✅ UPDATED: Simplified helper function - only for affordability check
+  // Simplified helper function - only for affordability check
   const canAfford = (cost: number): boolean => {
     return (userProgress?.points || 0) >= cost;
   };

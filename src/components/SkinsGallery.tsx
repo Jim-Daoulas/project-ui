@@ -48,8 +48,8 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
         setUnlockingStates(prev => ({ ...prev, [skin.id]: true }));
 
         try {
-            // ✅ ΔΙΟΡΘΩΣΗ: Σωστό endpoint
-            const response = await axiosInstance.post(`/skins/${skin.id}/unlock`);
+            // ΔΙΟΡΘΩΣΗ: Σωστό endpoint
+            const response = await axiosInstance.post(`/unlocks/unlock/skin/${skin.id}`);
             
             if (response.data.success) {
                 alert(`${skin.name} unlocked successfully!`);
