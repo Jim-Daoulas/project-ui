@@ -270,7 +270,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                                 thumbnailsRef.current.scrollBy({ left: -200, behavior: 'smooth' });
                             }
                         }}
-                        className="p-[5px 10px 5px 10px] bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
+                        className="px-2 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
                     >
                         ←
                     </button>
@@ -280,7 +280,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                                 thumbnailsRef.current.scrollBy({ left: 200, behavior: 'smooth' });
                             }
                         }}
-                        className="p-[5px 10px 5px 10px] bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
+                        className="px-2 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
                     >
                         →
                     </button>
