@@ -119,6 +119,9 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                 <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
                     Champion Skins
                 </h2>
+                <p className="text-gray-300">
+                    {championName ? `${championName}'s` : 'Champion'} available skins
+                </p>
             </div>
 
             {/* Main Display Image */}
@@ -260,14 +263,14 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
 
             {/* Navigation arrows για manual scrolling */}
             {skins.length > 5 && (
-                <div className="flex justify-center mt-4 gap-2">
+                <div className="flex justify-center mt-4 mb-2 gap-2">
                     <button
                         onClick={() => {
                             if (thumbnailsRef.current) {
                                 thumbnailsRef.current.scrollBy({ left: -200, behavior: 'smooth' });
                             }
                         }}
-                        className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
+                        className="p-[5px 10px 5px 10px] bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
                     >
                         ←
                     </button>
@@ -277,7 +280,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                                 thumbnailsRef.current.scrollBy({ left: 200, behavior: 'smooth' });
                             }
                         }}
-                        className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
+                        className="p-[5px 10px 5px 10px] bg-gray-700 hover:bg-gray-600 rounded-full text-white transition-colors"
                     >
                         →
                     </button>
