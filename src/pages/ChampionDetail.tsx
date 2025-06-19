@@ -27,7 +27,7 @@ const ChampionDetail = () => {
     try {
       setLoading(true);
       
-      // ✅ Χρησιμοποιούμε το σωστό endpoint ανάλογα με authentication
+      // Χρησιμοποιούμε το σωστό endpoint ανάλογα με authentication
       const endpoint = user ? `/champions/${id}` : `/champions/public/${id}`;
       const response = await axiosInstance.get<ChampionResponse>(endpoint);
       
@@ -57,7 +57,7 @@ const ChampionDetail = () => {
     
     try {
       
-      // ✅ Χρησιμοποιούμε το σωστό endpoint για skins
+      //  Χρησιμοποιούμε το σωστό endpoint για skins
       const endpoint = user 
         ? `/skins/champion/${id}` 
         : `/skins/public/champion/${id}`;
@@ -78,9 +78,9 @@ const ChampionDetail = () => {
   useEffect(() => {
     fetchChampion();
     fetchSkins();
-  }, [id, user]); // ✅ Προσθέσαμε user dependency
+  }, [id, user]); // user dependency
 
-  // ✅ Callback function για refresh όταν unlock skin
+  // Callback function για refresh όταν unlock skin
   const handleSkinUnlocked = () => {
     fetchSkins(); // Re-fetch μόνο τα skins
   };

@@ -27,11 +27,11 @@ export const useUnlock = () => {
     }
   };
 
-  // ✅ ΔΙΟΡΘΩΣΗ: Unlock champion
+  // Unlock champion
   const unlockChampion = async (championId: number): Promise<UnlockResult> => {
     try {
       setLoading(true);
-      // ✅ ΔΙΟΡΘΩΣΗ: Σωστό endpoint
+      // Σωστό endpoint
       const response = await axiosInstance.post(`/unlocks/unlock/champion/${championId}`);
       
       if (response.data.success) {

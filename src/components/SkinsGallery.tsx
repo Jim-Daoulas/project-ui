@@ -38,7 +38,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
         }
     }, [user]);
 
-    // ✅ ΔΙΟΡΘΩΣΗ: Συνάρτηση για unlock skin
+    //  Συνάρτηση για unlock skin
     const handleUnlockSkin = async (skin: Skin) => {
         if (!user) {
             alert('Please login to unlock skins');

@@ -64,7 +64,7 @@ const ChampionsList = ({
     }
   };
 
-  // ✅ Handle unlock champion με νέα λογική (χωρίς alert για points)
+  // Handle unlock champion
   const handleUnlockChampion = async (championId: number, event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
@@ -72,18 +72,16 @@ const ChampionsList = ({
     const champion = champions.find(c => c.id === championId);
     if (!champion) return;
 
-    // ✅ Σιωπηλή έξοδος αν δεν είναι logged in ή δεν έχει userProgress
+    // Σιωπηλή έξοδος αν δεν είναι logged in ή δεν έχει userProgress
     if (!user || !userProgress) {
       return; 
     }
-
-    // ✅ ΑΦΑΙΡΕΘΗΚΕ το alert για points - το UI δείχνει ήδη την κατάσταση
 
     try {
       const response = await axiosInstance.post(`/unlocks/unlock/champion/${champion.id}`);
       
       if (response.data.success) {
-        // ✅ Ενημέρωσε το AuthContext με τους νέους πόντους
+        // Ενημέρωσε το AuthContext με τους νέους πόντους
         updateUserPoints(response.data.data.user_points);
         
         await fetchChampions(); // Re-fetch to update UI
@@ -224,7 +222,7 @@ const ChampionsList = ({
                   }}
                 />
                 
-                {/* ✅ ΝΕΟ Lock overlay με λογική όπως SkinsGallery */}
+                {/* Lock overlay με λογική όπως SkinsGallery */}
                 <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center">
                   <div className="text-white text-center">
                     {user && userProgress ? (

@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 const Champions = () => {
   const { user } = useAuth();
 
-  // ✅ Αν είναι guest user - δείξε PublicHomepage
+  // Αν είναι guest user - δείξε PublicHomepage
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">

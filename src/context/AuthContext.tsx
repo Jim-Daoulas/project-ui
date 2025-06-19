@@ -145,7 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     };
 
-    // ✅ Νέα function για ενημέρωση των πόντων
+    // function για ενημέρωση των πόντων
     const updateUserPoints = (newPoints: number) => {
         setUser(prevUser => prevUser ? { ...prevUser, points: newPoints } : undefined);
     };

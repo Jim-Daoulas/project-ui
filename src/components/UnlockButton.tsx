@@ -8,8 +8,8 @@ interface UnlockButtonProps {
   name: string;
   cost: number;
   isUnlockedByDefault?: boolean;
-  isUnlocked?: boolean;    // ✅ NEW: Direct unlock status from API
-  canUnlock?: boolean;    // ✅ NEW: Can unlock status from API
+  isUnlocked?: boolean; 
+  canUnlock?: boolean; 
   className?: string;
   onSuccess?: () => void;
 }
@@ -19,8 +19,8 @@ const UnlockButton: React.FC<UnlockButtonProps> = ({
   id,
   cost,
   isUnlockedByDefault = false,
-  isUnlocked,    // ✅ NEW: Use this instead of hook
-  canUnlock,    // ✅ NEW: Use this instead of calculating
+  isUnlocked, 
+  canUnlock, 
   className = '',
   onSuccess
 }) => {
@@ -57,7 +57,7 @@ const UnlockButton: React.FC<UnlockButtonProps> = ({
     );
   }
 
-  // ✅ UPDATED: Use the new props instead of hooks
+  // Use the new props instead of hooks
   const isAlreadyUnlocked = isUnlocked || isUnlockedByDefault;
 
   if (isAlreadyUnlocked) {
@@ -68,7 +68,7 @@ const UnlockButton: React.FC<UnlockButtonProps> = ({
     );
   }
 
-  // ✅ UPDATED: Use canUnlock prop from API + local canAfford check
+  // Use canUnlock prop from API + local canAfford check
   const canBuy = canUnlock && canAfford(cost);
   
   const handleUnlock = async () => {
