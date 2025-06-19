@@ -204,7 +204,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
             {/* Thumbnails Row */}
             <div
                 ref={thumbnailsRef}
-                className="flex gap-3 overflow-x-auto pb-2 scroll-smooth"
+                className="flex gap-3 overflow-x-auto pb-2 scroll-smooth pr-2"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
                 {skins.map((skin) => (
