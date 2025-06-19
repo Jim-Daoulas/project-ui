@@ -17,14 +17,13 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
     const [unlockingStates, setUnlockingStates] = useState<Record<number, boolean>>({});
     const [userPoints, setUserPoints] = useState<number>(0);
     const thumbnailsRef = useRef<HTMLDivElement>(null);
-    const [skinsLoading] = useState(false);
 
     useEffect(() => {
         if (skins && skins.length > 0 && !selectedSkin) {
             setSelectedSkin(skins[0]);
         }
     }, [skins, selectedSkin]);
-    
+
     // Fetch user points on component mount
     useEffect(() => {
         if (user) {
@@ -50,14 +49,14 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
         try {
             // ΔΙΟΡΘΩΣΗ: Σωστό endpoint
             const response = await axiosInstance.post(`/unlocks/unlock/skin/${skin.id}`);
-            
+
             if (response.data.success) {
                 alert(`${skin.name} unlocked successfully!`);
-                
+
                 const newPoints = response.data.data.user_points; // Από το backend response
                 updateUserPoints(newPoints);
                 setUserPoints(newPoints);
-                
+
                 // Call the callback to refresh parent component
                 if (onSkinUnlocked) {
                     onSkinUnlocked();
@@ -77,19 +76,19 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
     // Συνάρτηση για αλλαγή skin με αυτόματο scroll
     const handleSkinSelect = (skin: Skin) => {
         setSelectedSkin(skin);
-        
+
         const skinIndex = skins.findIndex(s => s.id === skin.id);
-        
+
         if (thumbnailsRef.current && skinIndex !== -1) {
             const container = thumbnailsRef.current;
             const thumbnailWidth = 96 + 12;
             const containerWidth = container.clientWidth;
             const scrollPosition = skinIndex * thumbnailWidth;
-            
+
             let targetScroll = scrollPosition - (containerWidth / 2) + (thumbnailWidth / 2);
             const maxScroll = container.scrollWidth - containerWidth;
             targetScroll = Math.max(0, Math.min(targetScroll, maxScroll));
-            
+
             container.scrollTo({
                 left: targetScroll,
                 behavior: 'smooth'
@@ -99,6 +98,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
 
     if (!skins || skins.length === 0) {
         return (
+
             <div className="w-full">
                 {showTitle && (
                     <h2 className="text-2xl font-bold mb-6 text-white">
@@ -113,20 +113,14 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
     }
 
     return (
-       <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl shadow-2xl overflow-hidden">
-            {showTitle && (
-                <div className="p-6">
-                    <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                        Champion Skins
-                    </h3>
-                    {skinsLoading ? (
-                        <div className="text-center">
-                            <span className="loading loading-spinner loading-lg"></span>
-                        </div>
-                    ) : null}
-                </div>
-            )}
-            
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-gray-800 to-gray-700 p-6">
+                <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                    Champion Skins
+                </h2>
+            </div>
+
             {/* Main Display Image */}
             <div className="relative mb-6 rounded-lg overflow-hidden bg-gradient-to-br from-purple-900 via-blue-900 to-purple-800">
                 <div className="aspect-[16/9] relative">
@@ -143,7 +137,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                                             <button
                                                 onClick={() => handleUnlockSkin(selectedSkin)}
                                                 disabled={
-                                                    unlockingStates[selectedSkin.id] || 
+                                                    unlockingStates[selectedSkin.id] ||
                                                     userPoints < selectedSkin.unlock_cost
                                                 }
                                                 className={`
@@ -154,8 +148,8 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                                                     }
                                                 `}
                                             >
-                                                {unlockingStates[selectedSkin.id] 
-                                                    ? 'Unlocking...' 
+                                                {unlockingStates[selectedSkin.id]
+                                                    ? 'Unlocking...'
                                                     : userPoints >= selectedSkin.unlock_cost
                                                         ? 'Unlock Skin'
                                                         : 'Not Enough Points'
@@ -181,16 +175,16 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                                     target.src = '/placeholder-skin.jpg';
                                 }}
                             />
-                            
+
                             {/* Gradient overlay */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                            
+
                             {/* Skin Name Overlay */}
                             <div className="absolute bottom-0 left-0 right-0 p-6">
                                 <div className="flex justify-between items-end">
-                                        <h3 className="text-white text-2xl font-bold mb-2 flex items-center gap-2">
-                                            {selectedSkin.name}
-                                        </h3>
+                                    <h3 className="text-white text-2xl font-bold mb-2 flex items-center gap-2">
+                                        {selectedSkin.name}
+                                    </h3>
                                 </div>
                             </div>
                         </>
@@ -205,7 +199,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
             </div>
 
             {/* Thumbnails Row */}
-            <div 
+            <div
                 ref={thumbnailsRef}
                 className="flex gap-3 overflow-x-auto pb-2 scroll-smooth"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
@@ -216,8 +210,8 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                         className={`
                             relative flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden cursor-pointer
                             transition-all duration-300 hover:scale-105
-                            ${selectedSkin?.id === skin.id 
-                                ? 'ring-2 ring-purple-400 ring-opacity-100 shadow-lg shadow-purple-400/50' 
+                            ${selectedSkin?.id === skin.id
+                                ? 'ring-2 ring-purple-400 ring-opacity-100 shadow-lg shadow-purple-400/50'
                                 : 'ring-1 ring-gray-600 hover:ring-gray-400'
                             }
                         `}
@@ -232,21 +226,21 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                                 target.src = '/placeholder-skin-thumb.jpg';
                             }}
                         />
-                        
+
                         {/* Locked overlay for thumbnails */}
                         {skin.is_locked && (
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                 <span className="text-yellow-400 text-sm">🔒</span>
                             </div>
                         )}
-                        
+
                         {/* Selected indicator */}
                         {selectedSkin?.id === skin.id && (
                             <div className="absolute inset-0 bg-purple-500/20 flex items-center justify-center">
                                 <div className="w-4 h-4 bg-purple-400 rounded-full border-2 border-white" />
                             </div>
                         )}
-                        
+
                         {/* Hover overlay with skin name and unlock cost */}
                         <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-end">
                             <div className="p-1 w-full">
@@ -267,7 +261,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
             {/* Navigation arrows για manual scrolling */}
             {skins.length > 5 && (
                 <div className="flex justify-center mt-4 gap-2">
-                    <button 
+                    <button
                         onClick={() => {
                             if (thumbnailsRef.current) {
                                 thumbnailsRef.current.scrollBy({ left: -200, behavior: 'smooth' });
@@ -277,7 +271,7 @@ const SkinsGallery = ({ skins, championName, showTitle = true, onSkinUnlocked }:
                     >
                         ←
                     </button>
-                    <button 
+                    <button
                         onClick={() => {
                             if (thumbnailsRef.current) {
                                 thumbnailsRef.current.scrollBy({ left: 200, behavior: 'smooth' });
